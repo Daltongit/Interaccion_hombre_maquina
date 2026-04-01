@@ -30,7 +30,7 @@
                 <header class="page-header">
                     <div>
                         <h1>¿Qué lograremos hoy?</h1>
-                        <p>Tu asistente cognitivo para vencer la procrastinación.</p>
+                        <p>Tu asistente cognitivo visual para vencer la procrastinación.</p>
                     </div>
                     <div class="cloud-status" id="sync-status">
                         <i class='bx bx-loader-alt bx-spin'></i> Conectando...
@@ -70,19 +70,17 @@
 
             <div id="focus-view" class="hidden">
                 <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Abandonar Enfoque</button>
+                
                 <div class="focus-container">
+                    <h2 class="focus-title">Concéntrate en: <span id="focus-task-title" style="color: var(--primary);"></span></h2>
                     
-                    <div class="breathe-wrapper">
-                        <div class="breathe-circle" id="breathe-circle">
-                            <span id="breathe-text">Prepárate</span>
-                        </div>
-                        <p class="breathe-subtitle">Técnica de respiración 4-7-8 para calmar la mente</p>
+                    <div class="timer-circle-container">
+                        <svg class="timer-svg" viewBox="0 0 250 250">
+                            <circle class="timer-bg" cx="125" cy="125" r="115"></circle>
+                            <circle class="timer-progress" id="timer-progress" cx="125" cy="125" r="115"></circle>
+                        </svg>
+                        <div class="timer-display-absolute" id="timer-display">25:00</div>
                     </div>
-
-                    <h2 class="focus-title">Concéntrate solo en esto:</h2>
-                    <div id="focus-task-card" class="focus-task-card">Cargando tarea...</div>
-                    
-                    <div class="timer-display" id="timer-display">25:00</div>
 
                     <div class="focus-controls">
                         <button id="btn-timer-toggle" class="btn-primary btn-large">
@@ -92,6 +90,7 @@
                             <i class='bx bx-check'></i> ¡Terminé la tarea!
                         </button>
                     </div>
+                    <p class="focus-subtitle">El anillo visual te ayuda a medir el tiempo sin estrés auditivo.</p>
                 </div>
             </div>
         </main>

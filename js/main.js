@@ -12,82 +12,35 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnDictate = document.getElementById('btn-dictate');
     const voiceIndicator = document.getElementById('voice-indicator');
     
-    // DOM Reloj y Enfoque
     const dashboardView = document.getElementById('dashboard-view');
     const focusView = document.getElementById('focus-view');
-    const focusTaskCard = document.getElementById('focus-task-card');
+    const focusTaskTitle = document.getElementById('focus-task-title');
     const timerDisplay = document.getElementById('timer-display');
+    const timerProgress = document.getElementById('timer-progress');
     const btnTimerToggle = document.getElementById('btn-timer-toggle');
     const btnTimerComplete = document.getElementById('btn-timer-complete');
     const btnExitFocus = document.getElementById('btn-exit-focus');
 
-    // DOM Respiración
-    const breatheCircle = document.getElementById('breathe-circle');
-    const breatheText = document.getElementById('breathe-text');
-    let breatheTimeout1, breatheTimeout2, breatheTimeout3;
-
     let currentFocusTask = null; 
     let timerInterval = null;
     let isTimerRunning = false;
+    let defaultTime = 25;
     let timeLeft = 0;
+    const circumference = 2 * Math.PI * 115; // Matemáticas del SVG (radio 115)
 
-    // --- 1. CAMPANILLA POMODORO (RETROALIMENTACIÓN AGRADABLE) ---
-    function playChime() {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota A5
-        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.5);
-        
-        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
-        
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        
-        oscillator.start();
-        oscillator.stop(audioCtx.currentTime + 1.5);
-    }
+    // --- 1. RELOJ POMODORO VISUAL (ANILLO) ---
+    timerProgress.style.strokeDasharray = circumference;
 
-    // --- 2. RESPIRACIÓN 4-7-8 (USABILIDAD REAL CONTRA ANSIEDAD) ---
-    function runBreathingCycle() {
-        if(focusView.classList.contains('hidden')) return;
-
-        breatheText.textContent = "Inhala...";
-        breatheCircle.className = "breathe-circle inhale";
-
-        breatheTimeout1 = setTimeout(() => {
-            if(focusView.classList.contains('hidden')) return;
-            breatheText.textContent = "Mantén...";
-            breatheCircle.className = "breathe-circle hold";
-
-            breatheTimeout2 = setTimeout(() => {
-                if(focusView.classList.contains('hidden')) return;
-                breatheText.textContent = "Exhala...";
-                breatheCircle.className = "breathe-circle exhale";
-
-                breatheTimeout3 = setTimeout(() => {
-                    runBreathingCycle(); // Repetir ciclo
-                }, 8000);
-            }, 7000);
-        }, 4000);
-    }
-
-    function stopBreathing() {
-        clearTimeout(breatheTimeout1);
-        clearTimeout(breatheTimeout2);
-        clearTimeout(breatheTimeout3);
-        breatheCircle.className = "breathe-circle";
-        breatheText.textContent = "Prepárate";
-    }
-
-    // --- 3. RELOJ POMODORO FUNCIONAL ---
     function updateTimerDisplay() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
         timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+
+        // Lógica del anillo visual (Retroalimentación sin sonido)
+        const totalSeconds = defaultTime * 60;
+        const percentage = timeLeft / totalSeconds;
+        const offset = circumference - (percentage * circumference);
+        timerProgress.style.strokeDashoffset = offset;
     }
 
     btnTimerToggle.addEventListener('click', () => {
@@ -99,7 +52,6 @@ document.addEventListener('DOMContentLoaded', () => {
             isTimerRunning = true;
             btnTimerToggle.innerHTML = `<i class='bx bx-pause'></i> Pausar`;
             btnTimerComplete.classList.remove('hidden');
-            playChime(); // Suena al iniciar
 
             timerInterval = setInterval(() => {
                 if (timeLeft > 0) {
@@ -109,9 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(timerInterval);
                     isTimerRunning = false;
                     timerDisplay.textContent = "00:00";
-                    window.showToast("¡Tiempo terminado! Muy bien.", "bx-party");
+                    timerProgress.style.strokeDashoffset = circumference;
+                    window.showToast("¡Tiempo terminado! Buen trabajo.", "bx-party");
                     btnTimerToggle.classList.add('hidden');
-                    playChime(); // Suena al terminar
                 }
             }, 1000);
         }
@@ -132,35 +84,32 @@ document.addEventListener('DOMContentLoaded', () => {
     btnExitFocus.addEventListener('click', () => {
         clearInterval(timerInterval);
         isTimerRunning = false;
-        stopBreathing();
         focusView.classList.add('hidden');
         dashboardView.classList.remove('hidden');
     });
 
-    // --- 4. SISTEMA DE DESGLOSE MÁGICO INTELIGENTE ---
+    // --- 2. SISTEMA DE DESGLOSE MÁGICO INTELIGENTE ---
     function generateSubtasks(text) {
         const t = text.toLowerCase();
-        // Inteligencia basada en palabras clave
         if (t.includes('correr') || t.includes('ejercicio') || t.includes('gimnasio')) {
-            return ["Paso 1: Ponte ropa cómoda y zapatillas adecuadas.", "Paso 2: Haz 5 minutos de estiramiento suave.", "Paso 3: Empieza a tu propio ritmo, no te apresures."];
+            return ["1. Ponte ropa cómoda y zapatillas adecuadas.", "2. Haz 5 minutos de estiramiento suave.", "3. Empieza a tu propio ritmo, no te apresures."];
         } else if (t.includes('estudiar') || t.includes('leer') || t.includes('deberes') || t.includes('matemáticas')) {
-            return ["Paso 1: Despeja tu escritorio y ten agua cerca.", "Paso 2: Lee el título y haz un resumen mental.", "Paso 3: Haz 15 minutos de lectura sin distracciones."];
+            return ["1. Despeja tu escritorio y ten agua cerca.", "2. Lee el título y haz un resumen mental.", "3. Haz 15 minutos de trabajo continuo sin celular."];
         } else if (t.includes('cocinar') || t.includes('comer') || t.includes('almuerzo')) {
-            return ["Paso 1: Saca y lava todos los ingredientes necesarios.", "Paso 2: Prepara los utensilios y sartenes.", "Paso 3: Sigue la receta paso a paso y limpia al terminar."];
+            return ["1. Saca y lava todos los ingredientes necesarios.", "2. Prepara los utensilios y sartenes.", "3. Sigue la receta paso a paso y limpia al terminar."];
         } else if (t.includes('limpiar') || t.includes('barrer') || t.includes('cuarto')) {
-            return ["Paso 1: Recoge toda la basura y ropa del suelo.", "Paso 2: Limpia las superficies (escritorio, mesas).", "Paso 3: Barre o aspira de adentro hacia la puerta."];
+            return ["1. Recoge toda la basura y ropa del suelo.", "2. Limpia las superficies (escritorio, mesas).", "3. Barre o aspira de adentro hacia la puerta."];
         } else if (t.includes('comprar') || t.includes('supermercado') || t.includes('tienda')) {
-            return ["Paso 1: Revisa qué falta y haz una lista escrita.", "Paso 2: Lleva fundas reutilizables y tu billetera.", "Paso 3: Cíñete a la lista para evitar gastos extra."];
+            return ["1. Revisa qué falta y haz una lista escrita.", "2. Lleva fundas reutilizables y tu billetera.", "3. Cíñete a la lista para evitar gastos extra."];
         }
-        // Desglose genérico si no reconoce la palabra
         return [
-            `Paso 1: Identifica qué necesitas para empezar "${text}".`,
-            "Paso 2: Dedica solo 5 minutos a hacer la parte más fácil.",
-            "Paso 3: Toma un respiro y avanza un poco más."
+            `1. Identifica qué necesitas para empezar "${text}".`,
+            "2. Dedica solo 5 minutos a hacer la parte más fácil.",
+            "3. Toma un respiro y avanza un poco más."
         ];
     }
 
-    // --- 5. CATEGORIZADOR Y RENDERIZADO (CLARIDAD APLICADA) ---
+    // --- 3. CATEGORIZADOR Y RENDERIZADO ---
     function analyzeTaskCategory(text) {
         const lowerText = text.toLowerCase();
         if (lowerText.match(/(ejercicio|gym|gimnasio|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
@@ -196,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `task-item ${task.completada ? 'completed' : ''}`;
             
-            // EL BOTÓN AHORA ES CLARO Y CON TEXTO (Criterio de Claridad)
+            // Botones CLAROS y etiquetados
             div.innerHTML = `
                 <button class="icon-btn btn-check" aria-label="Completar" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
                 <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
@@ -215,14 +164,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             
-            // EVENTO 1: Iniciar Modo Enfoque desde la Tarea
+            // EVENTO 1: Iniciar Modo Enfoque
             const btnFocus = div.querySelector('.btn-focus-clear');
             if (btnFocus) {
                 btnFocus.addEventListener('click', () => {
                     currentFocusTask = task;
-                    focusTaskCard.textContent = task.texto;
+                    focusTaskTitle.textContent = task.texto; // Pone el nombre de la tarea en grande
                     
-                    let defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
+                    defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
                     timeLeft = defaultTime * 60;
                     updateTimerDisplay();
                     
@@ -232,9 +181,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     dashboardView.classList.add('hidden');
                     focusView.classList.remove('hidden');
-                    
-                    // Inicia el ejercicio de respiración
-                    runBreathingCycle(); 
                 });
             }
 
@@ -255,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // EVENTO 3: Eliminar, Completar y Escuchar
+            // EVENTOS: Eliminar, Completar y Escuchar
             div.querySelector('.btn-delete').addEventListener('click', async (e) => {
                 await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id);
                 fetchTasks();
@@ -283,13 +229,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnAdd.click(); });
 
-    // --- 6. MICRÓFONO (SOLUCIÓN A BRAVE) ---
+    // --- 4. MICRÓFONO (Manejo de Errores de Brave/Chrome) ---
     btnDictate.addEventListener('click', () => {
-        if (navigator.brave && navigator.brave.isBrave) {
-            window.showToast('Estás en Brave. Desactiva los escudos (icono del león) o usa Chrome para usar la voz.', 'bx-shield-x');
-            return;
-        }
-
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
 
@@ -303,7 +244,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         recognition.onresult = (e) => {
             taskInput.value = e.results[0][0].transcript;
-            window.showToast('Voz procesada.', 'bx-microphone');
+            window.showToast('Voz procesada. Pulsa Añadir.', 'bx-microphone');
         };
         
         recognition.onend = () => {
@@ -315,7 +256,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnDictate.classList.remove('listening');
             voiceIndicator.classList.add('hidden');
             if(e.error === 'network') {
-                window.showToast('Error de red. Revisa los escudos de privacidad de tu navegador.', 'bx-wifi-off');
+                window.showToast('Tu navegador (como Brave) bloquea el micrófono por privacidad. Usa texto.', 'bx-shield-x');
             } else {
                 window.showToast(`Error: ${e.error}`, 'bx-error');
             }

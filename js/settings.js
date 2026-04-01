@@ -1,106 +1,76 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. MODO OSCURO
-    const themeToggle = document.getElementById('theme-toggle');
-    const themeLabel = document.getElementById('theme-label');
-    const currentTheme = localStorage.getItem('theme') || 'light';
+    const setupToggle = (id, labelId, storageKey, activeText, inactiveText, classToToggle, toastIcon) => {
+        const toggle = document.getElementById(id);
+        const label = document.getElementById(labelId);
+        if(!toggle) return;
+        const isActive = localStorage.getItem(storageKey) === 'true' || (storageKey === 'theme' && localStorage.getItem('theme') === 'dark');
+        
+        if(isActive) { toggle.checked = true; label.textContent = activeText; }
+        
+        toggle.addEventListener('change', () => {
+            if(toggle.checked) {
+                if(classToToggle === 'theme') { document.documentElement.setAttribute('data-theme', 'dark'); localStorage.setItem('theme', 'dark'); }
+                else { document.documentElement.classList.add(classToToggle); localStorage.setItem(storageKey, 'true'); }
+                label.textContent = activeText;
+                window.showToast(activeText + ' activado', toastIcon);
+            } else {
+                if(classToToggle === 'theme') { document.documentElement.setAttribute('data-theme', 'light'); localStorage.setItem('theme', 'light'); }
+                else { document.documentElement.classList.remove(classToToggle); localStorage.setItem(storageKey, 'false'); }
+                label.textContent = inactiveText;
+                window.showToast(inactiveText + ' activado', toastIcon);
+            }
+        });
+    };
+
+    setupToggle('theme-toggle', 'theme-label', 'theme', 'Modo Oscuro', 'Modo Claro', 'theme', 'bx-moon');
+    setupToggle('dyslexia-toggle', 'dyslexia-label', 'dyslexiaMode', 'Activado', 'Desactivado', 'dyslexia-mode', 'bx-text');
+    setupToggle('zen-toggle', 'zen-label', 'zenMode', 'Activado', 'Desactivado', 'zen-mode', 'bx-hide');
     
-    if (currentTheme === 'dark') {
-        themeToggle.checked = true;
-        themeLabel.textContent = 'Modo Oscuro';
+    const visualToggle = document.getElementById('visual-alerts-toggle');
+    const visualLabel = document.getElementById('visual-alerts-label');
+    if(visualToggle) {
+        if(localStorage.getItem('visualAlerts') === 'true') { visualToggle.checked = true; visualLabel.textContent = 'Activado'; }
+        visualToggle.addEventListener('change', () => {
+            localStorage.setItem('visualAlerts', visualToggle.checked);
+            visualLabel.textContent = visualToggle.checked ? 'Activado' : 'Desactivado';
+            if(visualToggle.checked) {
+                document.body.classList.add('screen-flash'); setTimeout(() => document.body.classList.remove('screen-flash'), 1000);
+            }
+        });
     }
 
-    themeToggle.addEventListener('change', () => {
-        if (themeToggle.checked) {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            localStorage.setItem('theme', 'dark');
-            themeLabel.textContent = 'Modo Oscuro';
-            window.showToast('Modo oscuro activado', 'bx-moon');
-        } else {
-            document.documentElement.setAttribute('data-theme', 'light');
-            localStorage.setItem('theme', 'light');
-            themeLabel.textContent = 'Modo Claro';
-            window.showToast('Modo claro activado', 'bx-sun');
-        }
-    });
-
-    // 2. MODO DISLEXIA 
-    const dyslexiaToggle = document.getElementById('dyslexia-toggle');
-    const dyslexiaLabel = document.getElementById('dyslexia-label');
-    const isDyslexia = localStorage.getItem('dyslexiaMode') === 'true';
-
-    if (isDyslexia) {
-        dyslexiaToggle.checked = true;
-        dyslexiaLabel.textContent = 'Activado';
+    const hoverToggle = document.getElementById('hover-reader-toggle');
+    const hoverLabel = document.getElementById('hover-reader-label');
+    if(hoverToggle) {
+        if(localStorage.getItem('hoverReader') === 'true') { hoverToggle.checked = true; hoverLabel.textContent = 'Activado'; }
+        hoverToggle.addEventListener('change', () => {
+            localStorage.setItem('hoverReader', hoverToggle.checked);
+            hoverLabel.textContent = hoverToggle.checked ? 'Activado' : 'Desactivado';
+            if(hoverToggle.checked && window.readTextAloud) window.readTextAloud("Lector automático activado.");
+        });
     }
 
-    dyslexiaToggle.addEventListener('change', () => {
-        if (dyslexiaToggle.checked) {
-            document.documentElement.classList.add('dyslexia-mode');
-            localStorage.setItem('dyslexiaMode', 'true');
-            dyslexiaLabel.textContent = 'Activado';
-            window.showToast('Modo lectura fácil activado', 'bx-text');
-        } else {
-            document.documentElement.classList.remove('dyslexia-mode');
-            localStorage.setItem('dyslexiaMode', 'false');
-            dyslexiaLabel.textContent = 'Desactivado';
-            window.showToast('Modo lectura fácil desactivado', 'bx-text');
-        }
-    });
-
-    // 3. ALERTAS VISUALES 
-    const visualAlertsToggle = document.getElementById('visual-alerts-toggle');
-    const visualAlertsLabel = document.getElementById('visual-alerts-label');
-    const hasVisualAlerts = localStorage.getItem('visualAlerts') === 'true';
-
-    if (hasVisualAlerts) {
-        visualAlertsToggle.checked = true;
-        visualAlertsLabel.textContent = 'Activado';
-    }
-
-    visualAlertsToggle.addEventListener('change', () => {
-        if (visualAlertsToggle.checked) {
-            localStorage.setItem('visualAlerts', 'true');
-            visualAlertsLabel.textContent = 'Activado';
-            window.showToast('Alertas visuales y hápticas activadas', 'bx-bell');
-            
-            // Prueba de flash
-            document.body.classList.add('screen-flash');
-            setTimeout(() => document.body.classList.remove('screen-flash'), 1000);
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        } else {
-            localStorage.setItem('visualAlerts', 'false');
-            visualAlertsLabel.textContent = 'Desactivado';
-            window.showToast('Alertas visuales desactivadas', 'bx-bell-off');
-        }
-    });
-
-    // 4. TEMPORIZADOR DE ENFOQUE
     const timerInput = document.getElementById('timer-setting');
     const btnSaveTimer = document.getElementById('btn-save-timer');
-    timerInput.value = localStorage.getItem('focusTimer') || 25;
+    if(timerInput && btnSaveTimer) {
+        timerInput.value = localStorage.getItem('focusTimer') || 25;
+        btnSaveTimer.addEventListener('click', () => {
+            let val = parseInt(timerInput.value);
+            if(val < 1 || val > 60) return window.showToast('Ingresa un tiempo entre 1 y 60 minutos.', 'bx-error');
+            localStorage.setItem('focusTimer', val);
+            window.showToast(`Reloj guardado a ${val} min.`, 'bx-check');
+        });
+    }
 
-    btnSaveTimer.addEventListener('click', () => {
-        let val = parseInt(timerInput.value);
-        if(val < 1 || val > 60) {
-            window.showToast('Ingresa un tiempo entre 1 y 60 minutos.', 'bx-error');
-            return;
-        }
-        localStorage.setItem('focusTimer', val);
-        window.showToast(`Reloj de enfoque guardado a ${val} min.`, 'bx-check');
-    });
-
-    // 5. VELOCIDAD DE VOZ
     const speedSlider = document.getElementById('voice-speed');
     const speedLabel = document.getElementById('speed-label');
-    speedSlider.value = localStorage.getItem('voiceSpeed') || 0.9;
-    speedLabel.textContent = `${speedSlider.value}x`;
-
-    speedSlider.addEventListener('input', () => {
+    if(speedSlider && speedLabel) {
+        speedSlider.value = localStorage.getItem('voiceSpeed') || 0.9;
         speedLabel.textContent = `${speedSlider.value}x`;
-    });
-
-    speedSlider.addEventListener('change', () => {
-        localStorage.setItem('voiceSpeed', speedSlider.value);
-        window.showToast(`Velocidad de voz ajustada a ${speedSlider.value}x`, 'bx-volume-low');
-    });
+        speedSlider.addEventListener('input', () => speedLabel.textContent = `${speedSlider.value}x`);
+        speedSlider.addEventListener('change', () => {
+            localStorage.setItem('voiceSpeed', speedSlider.value);
+            window.showToast(`Velocidad ajustada a ${speedSlider.value}x`, 'bx-volume-low');
+        });
+    }
 });

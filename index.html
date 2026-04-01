@@ -3,81 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ClaroTask - Gestor Visual</title>
-    <!-- Fuentes e Iconos -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <title>FocusFlow - Gestor Cognitivo</title>
+    <!-- Fuente premium (Plus Jakarta Sans) para máxima legibilidad -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     
-    <!-- Estructura de CSS respetada -->
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
 </head>
 <body>
     <div class="app-layout">
-        <!-- Menú Lateral -->
-        <nav class="sidebar" aria-label="Menú principal">
+        <!-- Sidebar Premium -->
+        <nav class="sidebar" aria-label="Navegación principal">
             <div class="logo">
-                <i class='bx bx-check-square'></i>
-                <span>ClaroTask</span>
+                <div class="logo-icon"><i class='bx bx-brain'></i></div>
+                <span>FocusFlow</span>
             </div>
             <ul class="nav-links">
-                <li><a href="index.html" class="active"><i class='bx bx-list-ul'></i> <span>Mis Tareas</span></a></li>
-                <li><a href="configuracion.html"><i class='bx bx-cog'></i> <span>Ajustes</span></a></li>
+                <li><a href="#" class="active"><i class='bx bx-layout'></i> Panel Principal</a></li>
+                <li><a href="#" id="nav-focus"><i class='bx bx-target-lock'></i> Modo Enfoque</a></li>
+                <li><a href="#"><i class='bx bx-calendar'></i> Calendario</a></li>
+                <li><a href="#"><i class='bx bx-bar-chart-alt-2'></i> Progreso</a></li>
+                <li class="spacer"></li>
+                <li><a href="configuracion.html"><i class='bx bx-cog'></i> Configuración</a></li>
             </ul>
         </nav>
 
         <main class="main-content">
-            <header class="page-header">
-                <h1>Mis Tareas Visuales</h1>
-                <p>Añade tareas con texto o usando tu cámara para mayor claridad.</p>
-            </header>
+            <!-- VISTA PRINCIPAL -->
+            <div id="dashboard-view">
+                <header class="page-header">
+                    <div>
+                        <h1>Hola, ¿qué lograremos hoy?</h1>
+                        <p>Escribe tu tarea o díctala. Nosotros la organizamos por ti.</p>
+                    </div>
+                    <div class="cloud-status" id="sync-status">
+                        <i class='bx bx-cloud-check'></i> Sincronizado
+                    </div>
+                </header>
 
-            <section class="input-section">
-                <div class="input-card">
-                    <label for="task-input" class="sr-only">Escribe una tarea</label>
-                    <input type="text" id="task-input" placeholder="Ej. Tomar la medicina a las 8 PM">
-                    
-                    <div class="action-buttons">
-                        <button id="btn-camera" class="btn-secondary" aria-label="Tomar foto de la tarea">
-                            <i class='bx bx-camera'></i> Usar Cámara
+                <section class="input-section">
+                    <div class="smart-input-container">
+                        <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz">
+                            <i class='bx bx-microphone'></i>
                         </button>
-                        <button id="btn-add" class="btn-primary" aria-label="Guardar tarea">
-                            <i class='bx bx-save'></i> Guardar
+                        <input type="text" id="task-input" placeholder="Ej: Comprar leche, Leer capítulo 3, Pagar internet...">
+                        <button id="btn-add" class="btn-primary">
+                            <i class='bx bx-plus'></i> Añadir
                         </button>
                     </div>
-                </div>
+                    <div id="voice-indicator" class="voice-indicator hidden">Escuchando...</div>
+                </section>
 
-                <!-- Modal de la Cámara -->
-                <div id="camera-container" class="camera-container hidden">
-                    <video id="camera-stream" autoplay playsinline></video>
-                    <button id="btn-capture" class="btn-primary"><i class='bx bx-aperture'></i> Capturar Foto</button>
-                    <button id="btn-close-camera" class="btn-danger"><i class='bx bx-x'></i> Cancelar</button>
-                    <canvas id="canvas" hidden></canvas>
-                </div>
-                
-                <div id="photo-preview-container" class="hidden">
-                    <p>Foto adjunta:</p>
-                    <img id="photo-preview" src="" alt="Vista previa de la tarea">
-                    <button id="btn-remove-photo" class="btn-danger btn-small">Quitar foto</button>
-                </div>
-            </section>
+                <section class="tasks-section">
+                    <div class="tasks-header">
+                        <h2>Tus Tareas</h2>
+                        <div class="filters">
+                            <span class="filter-pill active">Todas</span>
+                            <span class="filter-pill">Pendientes</span>
+                            <span class="filter-pill">Completadas</span>
+                        </div>
+                    </div>
+                    <div id="task-list" class="task-list">
+                        <!-- Las tareas se inyectan aquí -->
+                    </div>
+                </section>
+            </div>
 
-            <section class="tasks-section">
-                <div class="section-title">
-                    <h2>Tareas Pendientes</h2>
-                    <span id="sync-status" class="badge"><i class='bx bx-cloud'></i> Sincronizado</span>
+            <!-- VISTA: MODO ENFOQUE (La Novedad para TDAH) -->
+            <div id="focus-view" class="hidden">
+                <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Volver al panel</button>
+                <div class="focus-container">
+                    <h2 class="focus-title">Concéntrate solo en esto:</h2>
+                    <div id="focus-task-card" class="focus-task-card">
+                        <!-- Tarea en enfoque -->
+                    </div>
+                    <div class="timer-display">25:00</div>
+                    <div class="focus-controls">
+                        <button id="btn-start-timer" class="btn-primary btn-large"><i class='bx bx-play'></i> Iniciar</button>
+                        <button id="btn-complete-focus" class="btn-success btn-large"><i class='bx bx-check'></i> ¡Terminé!</button>
+                    </div>
                 </div>
-                <div id="task-list" class="task-grid">
-                    <p class="empty-state">Cargando tus tareas...</p>
-                </div>
-            </section>
+            </div>
         </main>
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
 
-    <!-- Estructura de JS respetada -->
     <script src="js/feedback.js"></script>
     <script src="js/voice-nav.js"></script>
     <script type="module" src="js/main.js"></script>

@@ -5,6 +5,7 @@ window.showToast = function(message, icon = 'bx-info-circle') {
     toast.innerHTML = `<i class='bx ${icon}'></i> ${message}`;
     
     container.appendChild(toast);
+    
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateY(10px)';

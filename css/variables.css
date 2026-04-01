@@ -1,22 +1,20 @@
 :root {
-    /* Colores base (Alto contraste para Accesibilidad) */
-    --bg-dark: #0f172a;
-    --bg-card: #1e293b;
-    --text-primary: #f8fafc;
-    --text-secondary: #94a3b8;
-
-    /* Acentos */
-    --primary-color: #3b82f6;
-    --primary-hover: #2563eb;
-    --success: #10b981;
-    --danger: #ef4444;
-
-    /* Tipografía */
-    --font-main: 'Inter', sans-serif;
-
-    /* Espaciados y bordes */
-    --radius: 8px;
-    --transition: 0.3s ease;
+    /* Fondo oscuro puro para que resalten los neones */
+    --bg-base: #050505;
+    
+    /* Colores del gradiente de los videos */
+    --neon-1: #ff00ff;
+    --neon-2: #00ffff;
+    
+    /* Texto con alto contraste (Accesibilidad) */
+    --text-main: #ffffff;
+    --text-muted: #a1a1aa;
+    
+    /* Glassmorphism */
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    
+    --font-main: 'Outfit', sans-serif;
 }
 
 * {
@@ -27,7 +25,11 @@
 
 body {
     font-family: var(--font-main);
-    background-color: var(--bg-dark);
-    color: var(--text-primary);
-    line-height: 1.6;
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden; /* Para los blobs de fondo */
 }

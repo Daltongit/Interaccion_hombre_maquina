@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusFlow - Gestor Cognitivo</title>
-    <!-- Fuente premium (Plus Jakarta Sans) para máxima legibilidad -->
+    <title>FocusFlow - Asistencia Cognitiva</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
 </head>
 <body>
     <div class="app-layout">
-        <!-- Sidebar Premium -->
+        <!-- Sidebar -->
         <nav class="sidebar" aria-label="Navegación principal">
             <div class="logo">
                 <div class="logo-icon"><i class='bx bx-brain'></i></div>
@@ -23,67 +21,67 @@
             <ul class="nav-links">
                 <li><a href="#" class="active"><i class='bx bx-layout'></i> Panel Principal</a></li>
                 <li><a href="#" id="nav-focus"><i class='bx bx-target-lock'></i> Modo Enfoque</a></li>
-                <li><a href="#"><i class='bx bx-calendar'></i> Calendario</a></li>
-                <li><a href="#"><i class='bx bx-bar-chart-alt-2'></i> Progreso</a></li>
                 <li class="spacer"></li>
-                <li><a href="configuracion.html"><i class='bx bx-cog'></i> Configuración</a></li>
+                <li><a href="configuracion.html"><i class='bx bx-cog'></i> Ajustes</a></li>
             </ul>
         </nav>
 
         <main class="main-content">
-            <!-- VISTA PRINCIPAL -->
             <div id="dashboard-view">
                 <header class="page-header">
                     <div>
-                        <h1>Hola, ¿qué lograremos hoy?</h1>
-                        <p>Escribe tu tarea o díctala. Nosotros la organizamos por ti.</p>
+                        <h1>¿Qué lograremos hoy?</h1>
+                        <p>Tu asistente para mantener el enfoque y organizar tu mente.</p>
                     </div>
                     <div class="cloud-status" id="sync-status">
-                        <i class='bx bx-cloud-check'></i> Sincronizado
+                        <i class='bx bx-loader-alt bx-spin'></i> Conectando...
                     </div>
                 </header>
 
+                <!-- Input Inteligente -->
                 <section class="input-section">
                     <div class="smart-input-container">
-                        <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz">
+                        <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz" title="Habla tu tarea">
                             <i class='bx bx-microphone'></i>
                         </button>
-                        <input type="text" id="task-input" placeholder="Ej: Comprar leche, Leer capítulo 3, Pagar internet...">
-                        <button id="btn-add" class="btn-primary">
+                        <input type="text" id="task-input" placeholder="Ej: Hacer ejercicio, Deberes de matemáticas, Comprar pan..." aria-label="Escribe tu nueva tarea">
+                        <button id="btn-add" class="btn-primary" aria-label="Añadir tarea">
                             <i class='bx bx-plus'></i> Añadir
                         </button>
                     </div>
-                    <div id="voice-indicator" class="voice-indicator hidden">Escuchando...</div>
+                    <div id="voice-indicator" class="voice-indicator hidden">Escuchando... Di tu tarea.</div>
                 </section>
 
+                <!-- Novedad: Barra de Progreso Visual -->
+                <section class="progress-section">
+                    <div class="progress-header">
+                        <span class="progress-title">Progreso Diario</span>
+                        <span id="progress-text" class="progress-text">0 de 0 completadas</span>
+                    </div>
+                    <div class="progress-bar-bg">
+                        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                    </div>
+                </section>
+
+                <!-- Lista de Tareas -->
                 <section class="tasks-section">
                     <div class="tasks-header">
                         <h2>Tus Tareas</h2>
-                        <div class="filters">
-                            <span class="filter-pill active">Todas</span>
-                            <span class="filter-pill">Pendientes</span>
-                            <span class="filter-pill">Completadas</span>
-                        </div>
                     </div>
                     <div id="task-list" class="task-list">
-                        <!-- Las tareas se inyectan aquí -->
+                        <!-- Aquí se inyectan las tareas o el tutorial -->
                     </div>
                 </section>
             </div>
 
-            <!-- VISTA: MODO ENFOQUE (La Novedad para TDAH) -->
+            <!-- MODO ENFOQUE -->
             <div id="focus-view" class="hidden">
                 <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Volver al panel</button>
                 <div class="focus-container">
                     <h2 class="focus-title">Concéntrate solo en esto:</h2>
-                    <div id="focus-task-card" class="focus-task-card">
-                        <!-- Tarea en enfoque -->
-                    </div>
+                    <div id="focus-task-card" class="focus-task-card">Cargando tarea...</div>
                     <div class="timer-display">25:00</div>
-                    <div class="focus-controls">
-                        <button id="btn-start-timer" class="btn-primary btn-large"><i class='bx bx-play'></i> Iniciar</button>
-                        <button id="btn-complete-focus" class="btn-success btn-large"><i class='bx bx-check'></i> ¡Terminé!</button>
-                    </div>
+                    <p class="focus-subtitle">Evita distracciones. Tú puedes.</p>
                 </div>
             </div>
         </main>

@@ -1,199 +1,154 @@
-/* Layout Principal */
 .app-container {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* Sidebar de Navegación */
-.sidebar {
-    width: 250px;
-    background-color: var(--bg-card);
+    width: 100%;
     padding: 2rem;
-    border-right: 1px solid #334155;
+    display: flex;
+    justify-content: center;
+    z-index: 10;
 }
 
-.logo {
-    font-size: 1.5rem;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+header {
+    text-align: center;
     margin-bottom: 2rem;
-    color: var(--primary-color);
 }
 
-.nav-links {
-    list-style: none;
-}
-
-.nav-links li {
-    margin-bottom: 1rem;
-}
-
-.nav-links a {
-    color: var(--text-secondary);
-    text-decoration: none;
+.header-title {
     display: flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
-    padding: 0.75rem;
-    border-radius: var(--radius);
-    transition: var(--transition);
+    font-size: 1.5rem;
 }
 
-.nav-links a:hover,
-.nav-links a.active {
-    background-color: rgba(59, 130, 246, 0.1);
-    color: var(--primary-color);
-}
-
-/* Contenido Principal */
-.main-content {
-    flex: 1;
-    padding: 3rem;
-    max-width: 900px;
-}
-
-header h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
+.glow-icon {
+    color: var(--neon-2);
+    text-shadow: 0 0 10px var(--neon-2);
 }
 
 header p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
 }
 
-/* Inputs y Botones */
-.task-input-section {
-    background-color: var(--bg-card);
-    padding: 1.5rem;
-    border-radius: var(--radius);
-    margin-bottom: 2rem;
-}
-
-.input-wrapper {
+/* Input de cristal */
+.input-glass-wrapper {
     display: flex;
-    gap: 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 0.5rem;
+    margin-bottom: 2rem;
+    transition: border-color 0.3s;
+}
+
+.input-glass-wrapper:focus-within {
+    border-color: var(--neon-2);
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
 }
 
 input[type="text"] {
     flex: 1;
-    padding: 0.75rem 1rem;
-    border-radius: var(--radius);
-    border: 1px solid #334155;
-    background-color: var(--bg-dark);
-    color: var(--text-primary);
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
     font-size: 1rem;
+    font-family: inherit;
     outline: none;
 }
 
-input[type="text"]:focus {
-    border-color: var(--primary-color);
+input::placeholder {
+    color: #666;
 }
 
-button {
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 1rem;
+.btn-neon {
+    background: var(--text-main);
+    color: var(--bg-base);
     border: none;
-    border-radius: var(--radius);
-    transition: var(--transition);
-}
-
-.btn-primary {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 0 1.5rem;
+    border-radius: 8px;
+    width: 45px;
+    height: 45px;
     display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 600;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.btn-primary:hover {
-    background-color: var(--primary-hover);
+.btn-neon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.5);
 }
 
-/* Lista de Tareas */
-.task-list {
-    list-style: none;
-}
-
-.task-item {
-    background-color: var(--bg-card);
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius);
-    margin-bottom: 1rem;
+/* Lista de tareas */
+.list-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-left: 4px solid var(--primary-color);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 0.5rem;
 }
 
-.task-item.completed {
-    border-left-color: var(--success);
-    opacity: 0.7;
+.sync-status {
+    font-size: 0.8rem;
+    color: var(--neon-2);
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
 }
 
-.task-item.completed span {
-    text-decoration: line-through;
-    color: var(--text-secondary);
+.task-list {
+    list-style: none;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
 }
 
-.task-actions button {
-    background: none;
-    color: var(--text-secondary);
-    font-size: 1.25rem;
-    margin-left: 0.5rem;
+.task-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--glass-border);
+    padding: 1rem;
+    border-radius: 10px;
+    margin-bottom: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: slideUp 0.3s ease forwards;
+    transition: background 0.2s;
 }
 
-.task-actions .btn-complete:hover {
-    color: var(--success);
+.task-item:hover {
+    background: rgba(255, 255, 255, 0.08);
 }
 
-.task-actions .btn-delete:hover {
-    color: var(--danger);
+.task-text {
+    font-size: 1rem;
+    word-break: break-word;
 }
 
-/* Toasts de Retroalimentación */
-#toast-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 1000;
+.btn-delete {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: color 0.2s;
 }
 
-.toast {
-    background-color: var(--primary-color);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius);
-    margin-top: 10px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    animation: slideIn 0.3s ease forwards;
+.btn-delete:hover {
+    color: #ff4444;
 }
 
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+.loading-text {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-top: 1rem;
 }
 
-/* Ajustes simples */
-.settings-card {
-    background-color: var(--bg-card);
-    padding: 2rem;
-    border-radius: var(--radius);
-}
-
-.settings-card p {
-    margin: 1rem 0;
-    color: var(--text-secondary);
-}
+/* Custom Scrollbar */
+.task-list::-webkit-scrollbar { width: 6px; }
+.task-list::-webkit-scrollbar-track { background: transparent; }
+.task-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }

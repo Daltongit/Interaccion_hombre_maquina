@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. MODO OSCURO (Theme Toggle)
+    // 1. MODO OSCURO
     const themeToggle = document.getElementById('theme-toggle');
     const themeLabel = document.getElementById('theme-label');
     const currentTheme = localStorage.getItem('theme') || 'light';
@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentTheme === 'dark') {
         themeToggle.checked = true;
         themeLabel.textContent = 'Modo Oscuro';
-        document.documentElement.setAttribute('data-theme', 'dark');
     }
 
     themeToggle.addEventListener('change', () => {
@@ -24,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 2. MODO DISLEXIA / LECTURA FÁCIL
+    // 2. MODO DISLEXIA 
     const dyslexiaToggle = document.getElementById('dyslexia-toggle');
     const dyslexiaLabel = document.getElementById('dyslexia-label');
     const isDyslexia = localStorage.getItem('dyslexiaMode') === 'true';
@@ -32,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (isDyslexia) {
         dyslexiaToggle.checked = true;
         dyslexiaLabel.textContent = 'Activado';
-        document.documentElement.classList.add('dyslexia-mode');
     }
 
     dyslexiaToggle.addEventListener('change', () => {
@@ -49,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. ALERTAS VISUALES (SORDERA)
+    // 3. ALERTAS VISUALES 
     const visualAlertsToggle = document.getElementById('visual-alerts-toggle');
     const visualAlertsLabel = document.getElementById('visual-alerts-label');
     const hasVisualAlerts = localStorage.getItem('visualAlerts') === 'true';
@@ -64,7 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
             localStorage.setItem('visualAlerts', 'true');
             visualAlertsLabel.textContent = 'Activado';
             window.showToast('Alertas visuales y hápticas activadas', 'bx-bell');
-            // Demostración de la alerta visual al activarla
+            
+            // Prueba de flash
             document.body.classList.add('screen-flash');
             setTimeout(() => document.body.classList.remove('screen-flash'), 1000);
             if (navigator.vibrate) navigator.vibrate([200, 100, 200]);

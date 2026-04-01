@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajustes - FocusFlow</title>
+    <title>Ajustes - FocusFlow Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="css/variables.css">
@@ -12,53 +12,63 @@
     <script>
         if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         if(localStorage.getItem('dyslexiaMode') === 'true') document.documentElement.classList.add('dyslexia-mode');
+        if(localStorage.getItem('zenMode') === 'true') document.documentElement.classList.add('zen-mode');
     </script>
 </head>
 <body>
     <div class="app-layout">
-        <nav class="sidebar" aria-label="Navegación principal">
-            <div class="logo">
-                <div class="logo-icon"><i class='bx bx-brain'></i></div>
-                <span>FocusFlow</span>
-            </div>
+        <nav class="sidebar" aria-label="Menú principal">
+            <div class="logo"><div class="logo-icon"><i class='bx bx-brain'></i></div><span>FocusFlow</span></div>
             <ul class="nav-links">
-                <li><a href="index.html"><i class='bx bx-layout'></i> Panel Principal</a></li>
+                <li><a href="index.html" aria-label="Ir al panel principal"><i class='bx bx-layout'></i> Panel Principal</a></li>
                 <li class="spacer"></li>
-                <li><a href="configuracion.html" class="active"><i class='bx bx-cog'></i> Ajustes</a></li>
+                <li><a href="configuracion.html" class="active" aria-label="Ajustes actuales"><i class='bx bx-cog'></i> Ajustes</a></li>
             </ul>
         </nav>
 
         <main class="main-content">
             <header class="page-header">
                 <div>
-                    <h1>Ajustes de Accesibilidad</h1>
-                    <p>Personaliza la interfaz para que se adapte a tus necesidades visuales, auditivas o cognitivas.</p>
+                    <h1>Ajustes de Accesibilidad Extrema</h1>
+                    <p>Adaptación total para discapacidades visuales, motoras y cognitivas.</p>
                 </div>
             </header>
 
             <div class="settings-grid">
                 <div class="settings-card">
-                    <div class="settings-icon"><i class='bx bx-moon'></i></div>
-                    <h3>Apariencia (Contraste)</h3>
-                    <p>Activa el modo oscuro para reducir la fatiga visual.</p>
+                    <div class="settings-icon"><i class='bx bx-podcast'></i></div>
+                    <h3>Lector Automático (Ceguera)</h3>
+                    <p>El sistema leerá en voz alta cualquier botón que toques o enfoques con el teclado.</p>
                     <div class="toggle-container">
-                        <label class="switch">
-                            <input type="checkbox" id="theme-toggle" aria-label="Activar modo oscuro">
-                            <span class="slider round"></span>
-                        </label>
+                        <label class="switch"><input type="checkbox" id="hover-reader-toggle" aria-label="Activar lector automático"><span class="slider round"></span></label>
+                        <span id="hover-reader-label">Desactivado</span>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-icon"><i class='bx bx-hide'></i></div>
+                    <h3>Modo Zen (Anti-Sobrecarga)</h3>
+                    <p>Elimina distracciones, colores y menús. Toda la interfaz en escala de grises.</p>
+                    <div class="toggle-container">
+                        <label class="switch"><input type="checkbox" id="zen-toggle" aria-label="Activar modo zen blanco y negro"><span class="slider round"></span></label>
+                        <span id="zen-label">Desactivado</span>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-icon"><i class='bx bx-moon'></i></div>
+                    <h3>Modo Oscuro</h3>
+                    <div class="toggle-container">
+                        <label class="switch"><input type="checkbox" id="theme-toggle" aria-label="Activar modo oscuro"><span class="slider round"></span></label>
                         <span id="theme-label">Modo Claro</span>
                     </div>
                 </div>
 
                 <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-text'></i></div>
-                    <h3>Modo Lectura (Dislexia)</h3>
-                    <p>Aumenta el espaciado y usa fuentes de alta legibilidad.</p>
+                    <h3>Fuente para Dislexia</h3>
                     <div class="toggle-container">
-                        <label class="switch">
-                            <input type="checkbox" id="dyslexia-toggle" aria-label="Activar fuente para dislexia">
-                            <span class="slider round"></span>
-                        </label>
+                        <label class="switch"><input type="checkbox" id="dyslexia-toggle" aria-label="Activar fuente para dislexia"><span class="slider round"></span></label>
                         <span id="dyslexia-label">Desactivado</span>
                     </div>
                 </div>
@@ -66,36 +76,18 @@
                 <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-bell'></i></div>
                     <h3>Alertas Visuales (Sordera)</h3>
-                    <p>Parpadeo de pantalla y vibración al terminar el reloj.</p>
+                    <p>Parpadeo y vibración al terminar el reloj.</p>
                     <div class="toggle-container">
-                        <label class="switch">
-                            <input type="checkbox" id="visual-alerts-toggle" aria-label="Activar alertas visuales">
-                            <span class="slider round"></span>
-                        </label>
+                        <label class="switch"><input type="checkbox" id="visual-alerts-toggle" aria-label="Activar alertas visuales"><span class="slider round"></span></label>
                         <span id="visual-alerts-label">Desactivado</span>
                     </div>
-                </div>
-
-                <div class="settings-card">
-                    <div class="settings-icon"><i class='bx bx-timer'></i></div>
-                    <h3>Tiempo de Enfoque</h3>
-                    <p>Minutos del temporizador visual (Recomendado: 25 min).</p>
-                    <input type="number" id="timer-setting" min="1" max="60" value="25" class="setting-input" aria-label="Minutos del temporizador">
-                    <button id="btn-save-timer" class="btn-primary btn-small" style="margin-top: 10px;">Guardar Tiempo</button>
-                </div>
-
-                <div class="settings-card">
-                    <div class="settings-icon"><i class='bx bx-volume-full'></i></div>
-                    <h3>Asistente de Voz</h3>
-                    <p>Ajusta la velocidad de lectura (menor para más claridad).</p>
-                    <input type="range" id="voice-speed" min="0.5" max="1.5" step="0.1" value="0.9" style="width: 100%;" aria-label="Velocidad de la voz">
-                    <div style="margin-top: 10px; font-weight: bold;" id="speed-label">0.9x</div>
                 </div>
             </div>
         </main>
     </div>
     <div id="toast-container" aria-live="polite"></div>
     <script src="js/feedback.js"></script>
+    <script src="js/voice-nav.js"></script>
     <script src="js/settings.js"></script>
 </body>
 </html>

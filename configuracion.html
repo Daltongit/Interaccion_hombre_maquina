@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
-    <script>if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script>
+        if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if(localStorage.getItem('dyslexiaMode') === 'true') document.documentElement.classList.add('dyslexia-mode');
+    </script>
 </head>
 <body>
     <div class="app-layout">
@@ -28,19 +31,19 @@
         <main class="main-content">
             <header class="page-header">
                 <div>
-                    <h1>Ajustes de Preferencia</h1>
-                    <p>Personaliza tu experiencia de enfoque y accesibilidad visual.</p>
+                    <h1>Ajustes de Accesibilidad</h1>
+                    <p>Personaliza la interfaz para que se adapte a tus necesidades visuales, auditivas o cognitivas.</p>
                 </div>
             </header>
 
             <div class="settings-grid">
                 <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-moon'></i></div>
-                    <h3>Apariencia</h3>
-                    <p>Activa el modo oscuro para reducir la fatiga visual en la noche.</p>
+                    <h3>Apariencia (Contraste)</h3>
+                    <p>Activa el modo oscuro para reducir la fatiga visual.</p>
                     <div class="toggle-container">
                         <label class="switch">
-                            <input type="checkbox" id="theme-toggle">
+                            <input type="checkbox" id="theme-toggle" aria-label="Activar modo oscuro">
                             <span class="slider round"></span>
                         </label>
                         <span id="theme-label">Modo Claro</span>
@@ -48,10 +51,36 @@
                 </div>
 
                 <div class="settings-card">
+                    <div class="settings-icon"><i class='bx bx-text'></i></div>
+                    <h3>Modo Lectura (Dislexia)</h3>
+                    <p>Aumenta el espaciado y usa fuentes de alta legibilidad.</p>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="dyslexia-toggle" aria-label="Activar fuente para dislexia">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="dyslexia-label">Desactivado</span>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-icon"><i class='bx bx-bell'></i></div>
+                    <h3>Alertas Visuales (Sordera)</h3>
+                    <p>Parpadeo de pantalla y vibración al terminar el reloj.</p>
+                    <div class="toggle-container">
+                        <label class="switch">
+                            <input type="checkbox" id="visual-alerts-toggle" aria-label="Activar alertas visuales">
+                            <span class="slider round"></span>
+                        </label>
+                        <span id="visual-alerts-label">Desactivado</span>
+                    </div>
+                </div>
+
+                <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-timer'></i></div>
                     <h3>Tiempo de Enfoque</h3>
                     <p>Minutos del temporizador visual (Recomendado: 25 min).</p>
-                    <input type="number" id="timer-setting" min="1" max="60" value="25" class="setting-input">
+                    <input type="number" id="timer-setting" min="1" max="60" value="25" class="setting-input" aria-label="Minutos del temporizador">
                     <button id="btn-save-timer" class="btn-primary btn-small" style="margin-top: 10px;">Guardar Tiempo</button>
                 </div>
 
@@ -59,7 +88,7 @@
                     <div class="settings-icon"><i class='bx bx-volume-full'></i></div>
                     <h3>Asistente de Voz</h3>
                     <p>Ajusta la velocidad de lectura (menor para más claridad).</p>
-                    <input type="range" id="voice-speed" min="0.5" max="1.5" step="0.1" value="0.9" style="width: 100%;">
+                    <input type="range" id="voice-speed" min="0.5" max="1.5" step="0.1" value="0.9" style="width: 100%;" aria-label="Velocidad de la voz">
                     <div style="margin-top: 10px; font-weight: bold;" id="speed-label">0.9x</div>
                 </div>
             </div>

@@ -8,6 +8,7 @@
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animaciones.css">
     <script>if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
 </head>
 <body>
@@ -28,16 +29,15 @@
             <header class="page-header">
                 <div>
                     <h1>Ajustes de Preferencia</h1>
-                    <p>Personaliza tu experiencia de enfoque y accesibilidad.</p>
+                    <p>Personaliza tu experiencia de enfoque y accesibilidad visual.</p>
                 </div>
             </header>
 
             <div class="settings-grid">
-                <!-- Tarjeta de Tema -->
                 <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-moon'></i></div>
                     <h3>Apariencia</h3>
-                    <p>Activa el modo oscuro para reducir la fatiga visual.</p>
+                    <p>Activa el modo oscuro para reducir la fatiga visual en la noche.</p>
                     <div class="toggle-container">
                         <label class="switch">
                             <input type="checkbox" id="theme-toggle">
@@ -47,22 +47,20 @@
                     </div>
                 </div>
 
-                <!-- Tarjeta de Reloj -->
                 <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-timer'></i></div>
                     <h3>Tiempo de Enfoque</h3>
-                    <p>Minutos del temporizador Pomodoro.</p>
+                    <p>Minutos del temporizador visual (Recomendado: 25 min).</p>
                     <input type="number" id="timer-setting" min="1" max="60" value="25" class="setting-input">
-                    <button id="btn-save-timer" class="btn-primary btn-small" style="margin-top: 10px;">Guardar</button>
+                    <button id="btn-save-timer" class="btn-primary btn-small" style="margin-top: 10px;">Guardar Tiempo</button>
                 </div>
 
-                <!-- Tarjeta de Voz -->
                 <div class="settings-card">
                     <div class="settings-icon"><i class='bx bx-volume-full'></i></div>
                     <h3>Asistente de Voz</h3>
                     <p>Ajusta la velocidad de lectura (menor para más claridad).</p>
-                    <input type="range" id="voice-speed" min="0.5" max="1.5" step="0.1" value="0.9">
-                    <span id="speed-label">0.9x</span>
+                    <input type="range" id="voice-speed" min="0.5" max="1.5" step="0.1" value="0.9" style="width: 100%;">
+                    <div style="margin-top: 10px; font-weight: bold;" id="speed-label">0.9x</div>
                 </div>
             </div>
         </main>

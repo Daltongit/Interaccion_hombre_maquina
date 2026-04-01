@@ -6,6 +6,8 @@
     <title>FocusFlow - Asistencia Cognitiva</title>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
@@ -33,7 +35,7 @@
                 <header class="page-header">
                     <div>
                         <h1>¿Qué lograremos hoy?</h1>
-                        <p>Tu asistente cognitivo visual para vencer la procrastinación.</p>
+                        <p>Tu asistente cognitivo para vencer la procrastinación y la ansiedad.</p>
                     </div>
                     <div class="cloud-status" id="sync-status">
                         <i class='bx bx-loader-alt bx-spin'></i> Conectando...
@@ -45,12 +47,21 @@
                         <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz">
                             <i class='bx bx-microphone'></i>
                         </button>
-                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas, Limpiar el cuarto..." aria-label="Nueva tarea">
+                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas, Limpiar..." aria-label="Nueva tarea">
                         <button id="btn-add" class="btn-primary">
                             <i class='bx bx-plus'></i> Añadir
                         </button>
                     </div>
                     <div id="voice-indicator" class="voice-indicator hidden">Escuchando... Di tu tarea.</div>
+                    
+                    <div class="time-estimator">
+                        <span class="estimator-label">¿Cuánto tiempo te tomará?</span>
+                        <div class="time-chips" id="time-chips">
+                            <button class="chip" data-time="5"><i class='bx bx-bolt-circle'></i> Rápida (5m)</button>
+                            <button class="chip active" data-time="25"><i class='bx bx-timer'></i> Enfoque (25m)</button>
+                            <button class="chip" data-time="50"><i class='bx bx-brain'></i> Profundo (50m)</button>
+                        </div>
+                    </div>
                 </section>
 
                 <section class="progress-section">
@@ -74,26 +85,38 @@
             <div id="focus-view" class="hidden">
                 <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Abandonar Enfoque</button>
                 
-                <div class="focus-container">
-                    <h2 class="focus-title">Concéntrate en: <span id="focus-task-title" style="color: var(--primary);"></span></h2>
-                    
-                    <div class="timer-circle-container">
-                        <svg class="timer-svg" viewBox="0 0 250 250">
-                            <circle class="timer-bg" cx="125" cy="125" r="115"></circle>
-                            <circle class="timer-progress" id="timer-progress" cx="125" cy="125" r="115"></circle>
-                        </svg>
-                        <div class="timer-display-absolute" id="timer-display">25:00</div>
+                <div class="focus-layout">
+                    <div class="focus-container">
+                        <h2 class="focus-title">Concéntrate en: <span id="focus-task-title" style="color: var(--primary);"></span></h2>
+                        
+                        <div class="timer-circle-container">
+                            <svg class="timer-svg" viewBox="0 0 250 250">
+                                <circle class="timer-bg" cx="125" cy="125" r="115"></circle>
+                                <circle class="timer-progress" id="timer-progress" cx="125" cy="125" r="115"></circle>
+                            </svg>
+                            <div class="timer-display-absolute" id="timer-display">25:00</div>
+                        </div>
+
+                        <div class="focus-controls">
+                            <button id="btn-timer-toggle" class="btn-primary btn-large">
+                                <i class='bx bx-play'></i> Iniciar
+                            </button>
+                            <button id="btn-timer-complete" class="btn-success btn-large hidden">
+                                <i class='bx bx-check'></i> ¡Terminé la tarea!
+                            </button>
+                        </div>
                     </div>
 
-                    <div class="focus-controls">
-                        <button id="btn-timer-toggle" class="btn-primary btn-large">
-                            <i class='bx bx-play'></i> Iniciar
-                        </button>
-                        <button id="btn-timer-complete" class="btn-success btn-large hidden">
-                            <i class='bx bx-check'></i> ¡Terminé la tarea!
-                        </button>
+                    <div class="brain-dump-container">
+                        <h3><i class='bx bx-bulb'></i> Pensamientos Intrusivos</h3>
+                        <p>Si recuerdas algo que debes hacer, anótalo aquí para no perder el enfoque actual.</p>
+                        <div class="dump-input-wrapper">
+                            <input type="text" id="dump-input" placeholder="Ej: Llamar a mamá...">
+                            <button id="btn-dump" class="btn-secondary"><i class='bx bx-send'></i> Anotar</button>
+                        </div>
+                        <ul id="dump-list" class="dump-list">
+                            </ul>
                     </div>
-                    <p class="focus-subtitle">El anillo visual te ayuda a medir el tiempo sin estrés auditivo.</p>
                 </div>
             </div>
         </main>

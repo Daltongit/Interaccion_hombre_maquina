@@ -30,7 +30,7 @@
                 <header class="page-header">
                     <div>
                         <h1>¿Qué lograremos hoy?</h1>
-                        <p>Tu asistente para mantener el enfoque y organizar tu mente.</p>
+                        <p>Tu asistente cognitivo para vencer la procrastinación.</p>
                     </div>
                     <div class="cloud-status" id="sync-status">
                         <i class='bx bx-loader-alt bx-spin'></i> Conectando...
@@ -42,8 +42,8 @@
                         <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz">
                             <i class='bx bx-microphone'></i>
                         </button>
-                        <input type="text" id="task-input" placeholder="Ej: Hacer ejercicio, Estudiar matemáticas...">
-                        <button id="btn-add" class="btn-primary" aria-label="Añadir tarea">
+                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas, Limpiar el cuarto...">
+                        <button id="btn-add" class="btn-primary">
                             <i class='bx bx-plus'></i> Añadir
                         </button>
                     </div>
@@ -52,7 +52,7 @@
 
                 <section class="progress-section">
                     <div class="progress-header">
-                        <span class="progress-title">Progreso Diario</span>
+                        <span class="progress-title">Tu Energía Hoy (Progreso)</span>
                         <span id="progress-text" class="progress-text">0 de 0 completadas</span>
                     </div>
                     <div class="progress-bar-bg">
@@ -71,20 +71,28 @@
             <div id="focus-view" class="hidden">
                 <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Abandonar Enfoque</button>
                 <div class="focus-container">
+                    
+                    <div class="breathe-circle" id="breathe-circle">
+                        <span id="breathe-text">Respira</span>
+                    </div>
+
                     <h2 class="focus-title">Concéntrate solo en esto:</h2>
                     <div id="focus-task-card" class="focus-task-card">Cargando tarea...</div>
                     
                     <div class="timer-display" id="timer-display">25:00</div>
                     
+                    <button id="btn-noise" class="btn-noise mb-2" title="Ruido Marrón para concentración">
+                        <i class='bx bx-headphone'></i> Activar Sonido de Enfoque
+                    </button>
+
                     <div class="focus-controls">
                         <button id="btn-timer-toggle" class="btn-primary btn-large">
                             <i class='bx bx-play'></i> Iniciar
                         </button>
                         <button id="btn-timer-complete" class="btn-success btn-large hidden">
-                            <i class='bx bx-check'></i> ¡Terminé!
+                            <i class='bx bx-check'></i> ¡Terminé la tarea!
                         </button>
                     </div>
-                    <p class="focus-subtitle" id="focus-subtitle">Evita distracciones. Tú puedes.</p>
                 </div>
             </div>
         </main>

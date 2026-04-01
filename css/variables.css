@@ -1,8 +1,7 @@
 :root {
-    /* Paleta Premium y Relajante */
+    /* MODO CLARO (Por defecto) */
     --bg-body: #F8FAFC;
     --bg-surface: #FFFFFF;
-    
     --text-main: #0F172A;
     --text-muted: #64748B;
     
@@ -11,23 +10,36 @@
     --success: #10B981;
     --danger: #EF4444;
     
-    /* Colores de categorías para escaneo visual rápido */
-    --cat-compras: #F59E0B; /* Naranja */
-    --cat-estudio: #8B5CF6; /* Morado */
-    --cat-trabajo: #3B82F6; /* Azul */
-    --cat-ejercicio: #10B981; /* Verde */
-    --cat-salud: #EF4444; /* Rojo */
-    --cat-hogar: #EC4899; /* Rosa */
-    --cat-general: #94A3B8; /* Gris */
+    --cat-compras: #F59E0B;
+    --cat-estudio: #8B5CF6;
+    --cat-trabajo: #3B82F6;
+    --cat-ejercicio: #10B981;
+    --cat-salud: #EF4444;
+    --cat-hogar: #EC4899;
+    --cat-general: #94A3B8;
     
     --border: #E2E8F0;
     --radius-sm: 8px;
     --radius-md: 16px;
     --radius-lg: 24px;
     --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025);
-    
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.05);
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* MODO OSCURO (La Novedad Visual) */
+[data-theme="dark"] {
+    --bg-body: #0F172A;
+    --bg-surface: #1E293B;
+    --text-main: #F8FAFC;
+    --text-muted: #94A3B8;
+    --border: #334155;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md: 0 10px 15px -3px rgba(0,0,0,0.5);
+    
+    /* Adaptar colores para no deslumbrar en oscuro */
+    --primary: #6366F1;
+    --primary-hover: #818CF8;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -36,5 +48,5 @@ body {
     font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
     background-color: var(--bg-body);
     color: var(--text-main);
-    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }

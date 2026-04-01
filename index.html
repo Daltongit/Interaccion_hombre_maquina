@@ -42,7 +42,7 @@
                         <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz">
                             <i class='bx bx-microphone'></i>
                         </button>
-                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas, Limpiar el cuarto...">
+                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas, Limpiar el cuarto..." aria-label="Nueva tarea">
                         <button id="btn-add" class="btn-primary">
                             <i class='bx bx-plus'></i> Añadir
                         </button>
@@ -72,18 +72,17 @@
                 <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Abandonar Enfoque</button>
                 <div class="focus-container">
                     
-                    <div class="breathe-circle" id="breathe-circle">
-                        <span id="breathe-text">Respira</span>
+                    <div class="breathe-wrapper">
+                        <div class="breathe-circle" id="breathe-circle">
+                            <span id="breathe-text">Prepárate</span>
+                        </div>
+                        <p class="breathe-subtitle">Técnica de respiración 4-7-8 para calmar la mente</p>
                     </div>
 
                     <h2 class="focus-title">Concéntrate solo en esto:</h2>
                     <div id="focus-task-card" class="focus-task-card">Cargando tarea...</div>
                     
                     <div class="timer-display" id="timer-display">25:00</div>
-                    
-                    <button id="btn-noise" class="btn-noise mb-2" title="Ruido Marrón para concentración">
-                        <i class='bx bx-headphone'></i> Activar Sonido de Enfoque
-                    </button>
 
                     <div class="focus-controls">
                         <button id="btn-timer-toggle" class="btn-primary btn-large">

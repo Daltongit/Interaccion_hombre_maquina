@@ -5,7 +5,6 @@ const supabaseKey = 'sb_publishable_gzLqFJK-EbbKqxxPMrLkAQ_d-qRJnf7';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- VARIABLES GLOBALES ---
     const taskInput = document.getElementById('task-input');
     const btnAdd = document.getElementById('btn-add');
     const taskList = document.getElementById('task-list');
@@ -15,28 +14,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const progressBarFill = document.getElementById('progress-bar-fill');
     const progressText = document.getElementById('progress-text');
 
-    // MODO ENFOQUE DOM
-    const navFocus = document.getElementById('nav-focus');
-    const btnExitFocus = document.getElementById('btn-exit-focus');
+    // DOM del Reloj Pomodoro
     const dashboardView = document.getElementById('dashboard-view');
     const focusView = document.getElementById('focus-view');
     const focusTaskCard = document.getElementById('focus-task-card');
     const timerDisplay = document.getElementById('timer-display');
     const btnTimerToggle = document.getElementById('btn-timer-toggle');
     const btnTimerComplete = document.getElementById('btn-timer-complete');
-    const timerBtnText = document.getElementById('timer-btn-text');
+    const btnExitFocus = document.getElementById('btn-exit-focus');
     const focusSubtitle = document.getElementById('focus-subtitle');
 
-    let activeTasks = [];
-    let currentFocusTask = null; // Tarea que estamos haciendo en modo enfoque
-
-    // --- LÓGICA DEL RELOJ POMODORO ---
-    let timerInterval;
+    let currentFocusTask = null; 
+    let timerInterval = null;
     let isTimerRunning = false;
-    // Leer el tiempo guardado en ajustes (por defecto 25 min)
-    let defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
-    let timeLeft = defaultTime * 60; 
+    let timeLeft = 0;
 
+    // --- 1. LÓGICA DEL RELOJ POMODORO (¡Arreglada!) ---
     function updateTimerDisplay() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
@@ -45,18 +38,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     btnTimerToggle.addEventListener('click', () => {
         if (isTimerRunning) {
-            // Pausar
+            // Acción: Pausar
             clearInterval(timerInterval);
             isTimerRunning = false;
-            timerBtnText.textContent = 'Reanudar';
             btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Reanudar`;
             focusSubtitle.textContent = "Reloj en pausa.";
         } else {
-            // Iniciar
+            // Acción: Iniciar
             isTimerRunning = true;
             btnTimerToggle.innerHTML = `<i class='bx bx-pause'></i> Pausar`;
             focusSubtitle.textContent = "Concéntrate. El tiempo está corriendo...";
-            btnTimerComplete.classList.remove('hidden'); // Aparece el botón de terminar
+            btnTimerComplete.classList.remove('hidden');
 
             timerInterval = setInterval(() => {
                 if (timeLeft > 0) {
@@ -64,9 +56,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     updateTimerDisplay();
                 } else {
                     clearInterval(timerInterval);
+                    isTimerRunning = false;
                     timerDisplay.textContent = "00:00";
-                    window.showToast("¡Tiempo terminado! ¡Excelente trabajo!", "bx-party");
+                    window.showToast("¡Tiempo terminado! Buen trabajo.", "bx-party");
                     btnTimerToggle.classList.add('hidden');
+                    focusSubtitle.textContent = "¡Lo lograste! Marca la tarea como terminada.";
                 }
             }, 1000);
         }
@@ -78,12 +72,19 @@ document.addEventListener('DOMContentLoaded', () => {
             btnTimerComplete.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando...";
             await supabase.from('tareas').update({ completada: true }).eq('id', currentFocusTask.id);
             window.showToast('¡Tarea completada con éxito!', 'bx-check-double');
-            fetchTasks(); // Actualizar lista principal
+            fetchTasks(); 
         }
-        btnExitFocus.click(); // Salir del modo enfoque
+        btnExitFocus.click(); 
     });
 
-    // --- CATEGORIZADOR ---
+    btnExitFocus.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        focusView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+    });
+
+    // --- 2. CATEGORIZADOR VISUAL ---
     function analyzeTaskCategory(text) {
         const lowerText = text.toLowerCase();
         if (lowerText.match(/(ejercicio|gym|gimnasio|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
@@ -94,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return { cat: 'general', icon: 'bx-list-check', name: 'General' };
     }
 
-    // --- MICRÓFONO MEJORADO ---
+    // --- 3. MICRÓFONO MEJORADO ---
     btnDictate.addEventListener('click', () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
@@ -117,14 +118,11 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceIndicator.classList.add('hidden');
         };
 
-        // EXPLICACIÓN DEL ERROR NETWORK
         recognition.onerror = (e) => {
             btnDictate.classList.remove('listening');
             voiceIndicator.classList.add('hidden');
             if(e.error === 'network') {
-                window.showToast('Chrome requiere conexión a internet para convertir tu voz a texto.', 'bx-wifi-off');
-            } else if (e.error === 'not-allowed') {
-                window.showToast('Permite el acceso al micrófono en el navegador.', 'bx-lock-alt');
+                window.showToast('El micrófono requiere conexión a internet para funcionar.', 'bx-wifi-off');
             } else {
                 window.showToast(`Error: ${e.error}`, 'bx-error');
             }
@@ -133,15 +131,12 @@ document.addEventListener('DOMContentLoaded', () => {
         recognition.start();
     });
 
-    // --- SUPABASE Y RENDER ---
+    // --- 4. GESTIÓN DE TAREAS Y RENDERIZADO ---
     async function fetchTasks() {
         syncStatus.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i>`;
         const { data, error } = await supabase.from('tareas').select('*').order('created_at', { ascending: false });
         if (!error) {
-            activeTasks = data.filter(t => !t.completada);
             renderTasks(data);
-            
-            // Progreso
             const completed = data.filter(t => t.completada).length;
             const total = data.length;
             progressBarFill.style.width = total === 0 ? '0%' : `${(completed/total)*100}%`;
@@ -161,6 +156,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const cat = analyzeTaskCategory(task.texto);
             const div = document.createElement('div');
             div.className = `task-item ${task.completada ? 'completed' : ''}`;
+            
+            // LA NOVEDAD: Ahora cada tarea tiene su propio botón "Enfocar" (bx-target-lock)
             div.innerHTML = `
                 <button class="icon-btn btn-check" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
                 <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
@@ -169,29 +166,56 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="task-meta">${cat.name}</span>
                 </div>
                 <div class="task-actions">
-                    <button class="icon-btn btn-listen" data-text="${task.texto}"><i class='bx bx-volume-full'></i></button>
-                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}"><i class='bx bx-trash'></i></button>
+                    ${!task.completada ? `<button class="icon-btn btn-focus" style="color: var(--primary);" title="Enfocar en esta tarea"><i class='bx bx-target-lock'></i></button>` : ''}
+                    <button class="icon-btn btn-listen" data-text="${task.texto}" title="Escuchar"><i class='bx bx-volume-full'></i></button>
+                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}" title="Eliminar"><i class='bx bx-trash'></i></button>
                 </div>
             `;
-            // Eliminar
+            
+            // Evento: Iniciar Modo Enfoque para ESTA tarea específica
+            const btnFocus = div.querySelector('.btn-focus');
+            if (btnFocus) {
+                btnFocus.addEventListener('click', () => {
+                    currentFocusTask = task;
+                    focusTaskCard.textContent = task.texto;
+                    
+                    // Preparar el reloj
+                    let defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
+                    timeLeft = defaultTime * 60;
+                    updateTimerDisplay();
+                    
+                    btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Iniciar`;
+                    btnTimerToggle.classList.remove('hidden');
+                    btnTimerComplete.classList.add('hidden');
+                    btnTimerComplete.innerHTML = `<i class='bx bx-check'></i> ¡Terminé!`;
+                    focusSubtitle.textContent = "Evita distracciones. Tú puedes.";
+                    
+                    dashboardView.classList.add('hidden');
+                    focusView.classList.remove('hidden');
+                });
+            }
+
+            // Evento: Eliminar
             div.querySelector('.btn-delete').addEventListener('click', async (e) => {
                 await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id);
                 fetchTasks();
             });
-            // Completar
+            
+            // Evento: Marcar como Completada
             div.querySelector('.btn-check').addEventListener('click', async (e) => {
                 const state = e.currentTarget.dataset.state === 'true';
                 await supabase.from('tareas').update({ completada: !state }).eq('id', e.currentTarget.dataset.id);
                 fetchTasks();
             });
-            // Escuchar
+            
+            // Evento: Escuchar voz
             div.querySelector('.btn-listen').addEventListener('click', (e) => window.readTextAloud(e.currentTarget.dataset.text));
             
             taskList.appendChild(div);
         });
     }
 
-    // AÑADIR TAREA
+    // --- 5. AÑADIR TAREA NUEVA ---
     btnAdd.addEventListener('click', async () => {
         if (!taskInput.value) return;
         btnAdd.disabled = true;
@@ -201,34 +225,10 @@ document.addEventListener('DOMContentLoaded', () => {
         fetchTasks();
     });
 
-    // MODO ENFOQUE ACTIVACIÓN
-    navFocus.addEventListener('click', (e) => {
-        e.preventDefault();
-        if (activeTasks.length === 0) return window.showToast('Sin tareas pendientes para enfocar.', 'bx-info-circle');
-        
-        currentFocusTask = activeTasks[activeTasks.length - 1]; 
-        focusTaskCard.textContent = currentFocusTask.texto;
-        
-        // Reset Reloj
-        clearInterval(timerInterval);
-        isTimerRunning = false;
-        timeLeft = defaultTime * 60;
-        updateTimerDisplay();
-        btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Iniciar`;
-        btnTimerToggle.classList.remove('hidden');
-        btnTimerComplete.classList.add('hidden');
-        btnTimerComplete.innerHTML = `<i class='bx bx-check'></i> ¡Completada!`;
-        focusSubtitle.textContent = "Evita distracciones. Tú puedes.";
-        
-        dashboardView.classList.add('hidden');
-        focusView.classList.remove('hidden');
+    taskInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') btnAdd.click();
     });
 
-    btnExitFocus.addEventListener('click', () => {
-        clearInterval(timerInterval);
-        focusView.classList.add('hidden');
-        dashboardView.classList.remove('hidden');
-    });
-
+    // Arrancar la app
     fetchTasks();
 });

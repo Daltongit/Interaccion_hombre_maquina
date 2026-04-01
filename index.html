@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Tareas Inteligente</title>
+    <!-- Fuentes e Iconos desde la nube (Eficiencia y Accesibilidad) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Estilos -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animaciones.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Navegación lateral (Facilidad de navegación) -->
+        <nav class="sidebar">
+            <div class="logo">
+                <i class='bx bx-check-shield'></i>
+                <span>TaskPro</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="index.html" class="active"><i class='bx bx-list-ul'></i> Tareas</a></li>
+                <li><a href="configuracion.html"><i class='bx bx-cog'></i> Configuración</a></li>
+            </ul>
+        </nav>
+
+        <!-- Contenido Principal -->
+        <main class="main-content">
+            <header>
+                <h1>Mis Tareas</h1>
+                <p>Gestiona tu tiempo de forma eficiente.</p>
+            </header>
+
+            <!-- Input y Comando de voz (Novedad y Eficiencia) -->
+            <section class="task-input-section">
+                <div class="input-wrapper">
+                    <input type="text" id="task-input" placeholder="Escribe una nueva tarea..."
+                        aria-label="Nueva tarea">
+                    <button id="btn-add" class="btn-primary" aria-label="Añadir tarea">
+                        <i class='bx bx-plus'></i> Añadir
+                    </button>
+                    <!-- Botón con efecto de borde gradiente para la voz -->
+                    <button id="btn-voice" class="btn-voice gradient-border" aria-label="Dictar tarea">
+                        <i class='bx bx-microphone'></i>
+                    </button>
+                </div>
+                <p id="voice-status" class="voice-status">Presiona el micrófono y di "Añadir [tu tarea]"</p>
+            </section>
+
+            <!-- Lista de Tareas (Claridad) -->
+            <section class="task-list-section">
+                <ul id="task-list" class="task-list">
+                    <!-- Las tareas se inyectan aquí con JS -->
+                </ul>
+            </section>
+        </main>
+    </div>
+
+    <!-- Contenedor para notificaciones (Retroalimentación) -->
+    <div id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="js/feedback.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/voice-nav.js"></script>
+</body>
+
+</html>

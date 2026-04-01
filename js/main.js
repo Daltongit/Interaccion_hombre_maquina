@@ -5,22 +5,16 @@ const supabaseKey = 'sb_publishable_gzLqFJK-EbbKqxxPMrLkAQ_d-qRJnf7';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener('DOMContentLoaded', () => {
-    // --- VARIABLES GLOBALES DEL DOM ---
     const taskInput = document.getElementById('task-input');
+    const prioritySelect = document.getElementById('task-priority');
     const btnAdd = document.getElementById('btn-add');
     const taskList = document.getElementById('task-list');
     const syncStatus = document.getElementById('sync-status');
     const btnDictate = document.getElementById('btn-dictate');
-    const voiceIndicator = document.getElementById('voice-indicator');
     
-    // Vistas y Navegación
     const dashboardView = document.getElementById('dashboard-view');
     const statsView = document.getElementById('stats-view');
     const focusView = document.getElementById('focus-view');
-    const navDashboard = document.getElementById('nav-dashboard');
-    const navStats = document.getElementById('nav-stats');
-    
-    // Reloj
     const focusTaskTitle = document.getElementById('focus-task-title');
     const timerDisplay = document.getElementById('timer-display');
     const timerProgress = document.getElementById('timer-progress');
@@ -28,18 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTimerComplete = document.getElementById('btn-timer-complete');
     const btnExitFocus = document.getElementById('btn-exit-focus');
 
-    // Brain Dump
     const dumpInput = document.getElementById('dump-input');
     const btnDump = document.getElementById('btn-dump');
     const dumpList = document.getElementById('dump-list');
 
-    // Filtros y Modal
-    const filterBtns = document.querySelectorAll('.filter-btn');
-    const btnHelp = document.getElementById('btn-help');
-    const shortcutsModal = document.getElementById('shortcuts-modal');
-    const btnCloseModal = document.getElementById('btn-close-modal');
-
-    // Estados
+    let allTasksData = []; 
     let currentFocusTask = null; 
     let timerInterval = null;
     let isTimerRunning = false;
@@ -47,73 +34,67 @@ document.addEventListener('DOMContentLoaded', () => {
     let timeLeft = 0;
     let selectedTimeEstimate = 25;
     const circumference = 2 * Math.PI * 115; 
-    let allTasksData = []; // Caché local para filtros rápidos
 
-    timerProgress.style.strokeDasharray = circumference;
+    if(timerProgress) timerProgress.style.strokeDasharray = circumference;
 
-    // --- 1. SISTEMA DE NAVEGACIÓN Y TABS ---
-    navDashboard.addEventListener('click', (e) => {
-        e.preventDefault();
-        navDashboard.classList.add('active');
-        navStats.classList.remove('active');
-        dashboardView.classList.remove('hidden');
-        statsView.classList.add('hidden');
-        focusView.classList.add('hidden');
-    });
+    // --- 1. GAMIFICACIÓN ---
+    function calculateLevel(tasks) {
+        const completedCount = tasks.filter(t => t.completada).length;
+        const xp = completedCount * 50; 
+        const level = Math.floor(xp / 200) + 1; 
+        const xpInCurrentLevel = xp % 200;
+        const progressPercentage = (xpInCurrentLevel / 200) * 100;
 
-    navStats.addEventListener('click', (e) => {
-        e.preventDefault();
-        navStats.classList.add('active');
-        navDashboard.classList.remove('active');
-        statsView.classList.remove('hidden');
-        dashboardView.classList.add('hidden');
-        focusView.classList.add('hidden');
-        updateStats(); // Refresca matemáticas
-    });
+        document.getElementById('user-level').textContent = level;
+        document.getElementById('user-xp').textContent = xp;
+        document.getElementById('level-bar-fill').style.width = `${progressPercentage}%`;
+        
+        const lastLevel = parseInt(localStorage.getItem('savedLevel')) || 1;
+        if (level > lastLevel) {
+            window.showToast(`¡Subiste al Nivel ${level}! Eres increíble.`, 'bx-star');
+            if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 100 });
+            localStorage.setItem('savedLevel', level);
+        }
+    }
 
-    // --- 2. SISTEMA DE FILTROS DINÁMICOS (Eficiencia) ---
+    // --- 2. NAVEGACIÓN Y FILTROS ---
+    document.getElementById('nav-dashboard').addEventListener('click', (e) => { e.preventDefault(); switchView(dashboardView, e.currentTarget); });
+    document.getElementById('nav-stats').addEventListener('click', (e) => { e.preventDefault(); switchView(statsView, e.currentTarget); updateStats(); });
+    
+    function switchView(viewToShow, activeNav) {
+        document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+        activeNav.classList.add('active');
+        [dashboardView, statsView, focusView].forEach(v => v.classList.add('hidden'));
+        viewToShow.classList.remove('hidden');
+    }
+
+    const filterBtns = document.querySelectorAll('.filter-btn');
     filterBtns.forEach(btn => {
         btn.addEventListener('click', (e) => {
             filterBtns.forEach(b => b.classList.remove('active'));
             e.currentTarget.classList.add('active');
-            const filterType = e.currentTarget.dataset.filter;
-            
-            document.querySelectorAll('.task-item').forEach(item => {
-                const isCompleted = item.classList.contains('completed');
-                if (filterType === 'all') item.classList.remove('hidden');
-                else if (filterType === 'pending' && !isCompleted) item.classList.remove('hidden');
-                else if (filterType === 'completed' && isCompleted) item.classList.remove('hidden');
-                else item.classList.add('hidden');
-            });
+            renderTasks(allTasksData); 
         });
     });
 
-    // --- 3. ATAJOS DE TECLADO (Accesibilidad Motora) ---
+    document.querySelectorAll('.chip').forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            selectedTimeEstimate = parseInt(e.currentTarget.dataset.time);
+        });
+    });
+
+    // --- 3. ATAJOS DE TECLADO ---
+    const btnHelp = document.getElementById('btn-help');
+    const shortcutsModal = document.getElementById('shortcuts-modal');
+    const btnCloseModal = document.getElementById('btn-close-modal');
+
     document.addEventListener('keydown', (e) => {
-        // Alt + N: Enfocar Input Principal
-        if (e.altKey && e.key.toLowerCase() === 'n') {
-            e.preventDefault();
-            navDashboard.click();
-            taskInput.focus();
-        }
-        // Alt + M: Activar Micrófono
-        if (e.altKey && e.key.toLowerCase() === 'm') {
-            e.preventDefault();
-            btnDictate.click();
-        }
-        // Alt + E: Iniciar modo enfoque con la primera pendiente
-        if (e.altKey && e.key.toLowerCase() === 'e') {
-            e.preventDefault();
-            const firstPendingBtn = document.querySelector('.task-item:not(.completed) .btn-focus-clear');
-            if(firstPendingBtn) firstPendingBtn.click();
-            else window.showToast('No hay tareas pendientes', 'bx-info-circle');
-        }
-        // Alt + H: Ayuda
-        if (e.altKey && e.key.toLowerCase() === 'h') {
-            e.preventDefault();
-            btnHelp.click();
-        }
-        // Esc: Salir de modales o enfoque
+        if (e.altKey && e.key.toLowerCase() === 'n') { e.preventDefault(); document.getElementById('nav-dashboard').click(); taskInput.focus(); }
+        if (e.altKey && e.key.toLowerCase() === 'm') { e.preventDefault(); btnDictate.click(); }
+        if (e.altKey && e.key.toLowerCase() === 'e') { e.preventDefault(); const fb = document.querySelector('.task-item:not(.completed) .btn-focus-clear'); if(fb) fb.click(); }
+        if (e.altKey && e.key.toLowerCase() === 'h') { e.preventDefault(); btnHelp.click(); }
         if (e.key === 'Escape') {
             if(!shortcutsModal.classList.contains('hidden')) btnCloseModal.click();
             else if(!focusView.classList.contains('hidden')) btnExitFocus.click();
@@ -123,92 +104,44 @@ document.addEventListener('DOMContentLoaded', () => {
     btnHelp.addEventListener('click', () => shortcutsModal.classList.remove('hidden'));
     btnCloseModal.addEventListener('click', () => shortcutsModal.classList.add('hidden'));
 
-    // --- 4. COMANDOS DE VOZ AVANZADOS (La Killer Feature) ---
+    // --- 4. COMANDOS DE VOZ AVANZADOS ---
     btnDictate.addEventListener('click', () => {
-        if (navigator.brave && navigator.brave.isBrave) {
-            return window.showToast('En Brave debes desactivar escudos para usar voz.', 'bx-shield-x');
-        }
+        if (navigator.brave && navigator.brave.isBrave) return window.showToast('En Brave desactiva escudos para usar voz.', 'bx-shield-x');
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
 
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'es-ES';
-        
-        recognition.onstart = () => {
-            btnDictate.classList.add('listening');
-            voiceIndicator.classList.remove('hidden');
-        };
+        const recognition = new SpeechRecognition(); recognition.lang = 'es-ES';
+        recognition.onstart = () => { btnDictate.classList.add('listening'); document.getElementById('voice-indicator').classList.remove('hidden'); };
         
         recognition.onresult = (e) => {
             const transcript = e.results[0][0].transcript.toLowerCase();
             
-            // INTELIGENCIA DE COMANDOS 
-            if (transcript.includes('activar modo oscuro') || transcript.includes('quitar modo oscuro')) {
-                const themeBtn = document.getElementById('theme-toggle');
-                if(themeBtn) {
-                    themeBtn.checked = !themeBtn.checked;
-                    themeBtn.dispatchEvent(new Event('change'));
-                }
-                window.showToast('Ejecutando comando visual...', 'bx-bot');
-            } 
+            let priorityFound = 'media';
+            if (transcript.includes('prioridad alta') || transcript.includes('urgente')) priorityFound = 'alta';
+            else if (transcript.includes('prioridad baja')) priorityFound = 'baja';
+            
+            if (transcript.includes('activar modo oscuro') || transcript.includes('quitar modo oscuro')) { document.getElementById('theme-toggle')?.click(); } 
             else if (transcript.includes('leer tareas') || transcript.includes('leer mis tareas')) {
                 const pending = allTasksData.filter(t => !t.completada);
-                if (pending.length === 0) window.readTextAloud("No tienes tareas pendientes. ¡Felicidades!");
-                else {
-                    const textToRead = "Tus tareas pendientes son: " + pending.map((t, i) => `${i+1}. ${t.texto}`).join(". ");
-                    window.readTextAloud(textToRead);
-                    window.showToast('Leyendo tareas...', 'bx-volume-full');
+                if(pending.length===0) window.readTextAloud("No hay tareas pendientes.");
+                else window.readTextAloud("Tienes " + pending.length + " tareas pendientes. " + pending.map(t => t.texto).join(". "));
+            }
+            else if (transcript.includes('añadir tarea')) {
+                const cleanTask = transcript.replace('añadir tarea', '').replace('prioridad alta', '').replace('prioridad media', '').replace('prioridad baja', '').trim();
+                if(cleanTask) {
+                    taskInput.value = cleanTask.charAt(0).toUpperCase() + cleanTask.slice(1);
+                    prioritySelect.value = priorityFound;
+                    btnAdd.click(); 
+                    window.showToast(`Tarea añadida por voz (Prio: ${priorityFound}).`, 'bx-bot');
                 }
-            } 
-            else if (transcript.includes('ir a ajustes') || transcript.includes('abrir ajustes')) {
-                window.location.href = "configuracion.html";
             }
-            else {
-                // Si no es un comando, lo pone en el input de tareas normal
-                taskInput.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-                window.showToast('Voz capturada. Presiona Añadir.', 'bx-microphone');
-            }
+            else { taskInput.value = transcript.charAt(0).toUpperCase() + transcript.slice(1); window.showToast('Voz capturada.', 'bx-microphone'); }
         };
-        
-        recognition.onend = () => {
-            btnDictate.classList.remove('listening');
-            voiceIndicator.classList.add('hidden');
-        };
+        recognition.onend = () => { btnDictate.classList.remove('listening'); document.getElementById('voice-indicator').classList.add('hidden'); };
         recognition.start();
     });
 
-    // --- 5. LÓGICA DE TIEMPOS Y RENDERIZADO ---
-    const chips = document.querySelectorAll('.chip');
-    chips.forEach(chip => {
-        chip.addEventListener('click', (e) => {
-            chips.forEach(c => c.classList.remove('active'));
-            e.currentTarget.classList.add('active');
-            selectedTimeEstimate = parseInt(e.currentTarget.dataset.time);
-        });
-    });
-
-    function updateStats() {
-        const completed = allTasksData.filter(t => t.completada);
-        const pending = allTasksData.filter(t => !t.completada);
-        
-        document.getElementById('stat-completed').textContent = completed.length;
-        document.getElementById('stat-pending').textContent = pending.length;
-        
-        // Sumar minutos de enfoque ganados
-        const totalMinutes = completed.reduce((acc, t) => acc + (t.tiempo_estimado || 25), 0);
-        document.getElementById('stat-time').textContent = `${totalMinutes}m`;
-        
-        // Barra de progreso global
-        const total = allTasksData.length;
-        const percentage = total === 0 ? 0 : Math.round((completed.length / total) * 100);
-        document.getElementById('progress-bar-fill').style.width = `${percentage}%`;
-        document.getElementById('progress-text').textContent = `${percentage}%`;
-    }
-
-    // Funciones del Reloj y Brain Dump (Mantenidas del código anterior)
-    // ... [Para evitar exceso de texto, aquí asume las funciones de updateTimerDisplay, btnTimerToggle, btnDump, etc. que te di en la respuesta pasada. Funcionan idéntico].
-    
-    // (Pego resumido la mecánica del reloj para completitud del archivo)
+    // --- 5. LÓGICAS DEL RELOJ Y DESCARGA ---
     function triggerReward() {
         if (typeof confetti === 'function') confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
         if (localStorage.getItem('visualAlerts') === 'true') {
@@ -237,10 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isTimerRunning = true; btnTimerToggle.innerHTML = `<i class='bx bx-pause'></i> Pausar`; btnTimerComplete.classList.remove('hidden');
             timerInterval = setInterval(() => {
                 if (timeLeft > 0) { timeLeft--; updateTimerDisplay(); } 
-                else {
-                    clearInterval(timerInterval); isTimerRunning = false; timerDisplay.textContent = "00:00"; timerProgress.style.strokeDashoffset = circumference;
-                    btnTimerToggle.classList.add('hidden'); triggerReward();
-                }
+                else { clearInterval(timerInterval); isTimerRunning = false; timerDisplay.textContent = "00:00"; timerProgress.style.strokeDashoffset = circumference; btnTimerToggle.classList.add('hidden'); triggerReward(); }
             }, 1000);
         }
     });
@@ -264,19 +194,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const text = dumpInput.value.trim(); if (!text) return;
         btnDump.disabled = true;
         const li = document.createElement('li'); li.innerHTML = `<i class='bx bx-check'></i> ${text}`; dumpList.appendChild(li);
-        await supabase.from('tareas').insert([{ texto: `[Descarga] ${text}`, categoria: 'general', tiempo_estimado: 5 }]);
+        await supabase.from('tareas').insert([{ texto: `[Descarga] ${text}`, categoria: 'general', tiempo_estimado: 5, prioridad: 'baja' }]);
         dumpInput.value = ''; btnDump.disabled = false; window.showToast("Anotado.", "bx-brain"); fetchTasks();
     });
     dumpInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') btnDump.click(); });
 
-    // --- 6. SUPABASE Y RENDERIZADO ---
-    function analyzeTaskCategory(text) {
+    // --- 6. GESTIÓN DE DATOS Y RENDERIZADO ---
+    function updateStats() {
+        const completed = allTasksData.filter(t => t.completada);
+        const pending = allTasksData.filter(t => !t.completada);
+        document.getElementById('stat-completed').textContent = completed.length;
+        document.getElementById('stat-pending').textContent = pending.length;
+        const totalMinutes = completed.reduce((acc, t) => acc + (t.tiempo_estimado || 25), 0);
+        document.getElementById('stat-time').textContent = `${totalMinutes}m`;
+    }
+
+    function getPriorityWeight(pri) { return pri === 'alta' ? 3 : pri === 'media' ? 2 : 1; }
+
+    function analyzeCategory(text) {
         const t = text.toLowerCase();
-        if (t.match(/(ejercicio|gym|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
-        if (t.match(/(deberes|tarea|estudiar|leer)/)) return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
-        if (t.match(/(medicina|pastilla|doctor)/)) return { cat: 'salud', icon: 'bx-plus-medical', name: 'Salud' };
-        if (t.match(/(limpiar|cocinar|cuarto)/)) return { cat: 'hogar', icon: 'bx-home-heart', name: 'Hogar' };
-        if (t.match(/(comprar|supermercado|pagar)/)) return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
+        if (t.match(/(ejercicio|gym|correr)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
+        if (t.match(/(deberes|estudiar|leer)/)) return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
         return { cat: 'general', icon: 'bx-list-check', name: 'General' };
     }
 
@@ -284,65 +222,71 @@ document.addEventListener('DOMContentLoaded', () => {
         syncStatus.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i>`;
         const { data, error } = await supabase.from('tareas').select('*').order('created_at', { ascending: false });
         if (!error) {
-            allTasksData = data; // Guarda en caché
+            allTasksData = data;
             renderTasks(data);
+            calculateLevel(data);
             updateStats();
+            
+            const completed = data.filter(t => t.completada).length;
+            const percentage = data.length === 0 ? 0 : Math.round((completed / data.length) * 100);
+            document.getElementById('progress-bar-fill').style.width = `${percentage}%`;
+            document.getElementById('progress-text').textContent = `${percentage}% completadas`;
+            
             syncStatus.innerHTML = `<i class='bx bx-cloud-check'></i>`;
         }
     }
 
     function renderTasks(tasks) {
         taskList.innerHTML = '';
-        if(tasks.length === 0) {
-            taskList.innerHTML = '<p style="text-align:center; padding: 2rem; color:var(--text-muted)">¡Añade tu primera tarea para empezar!</p>';
-            return;
-        }
+        
+        let sortedTasks = [...tasks].sort((a, b) => {
+            if (a.completada !== b.completada) return a.completada ? 1 : -1;
+            return getPriorityWeight(b.prioridad) - getPriorityWeight(a.prioridad);
+        });
 
-        // Aplica el filtro activo actual al renderizar
         const activeFilter = document.querySelector('.filter-btn.active').dataset.filter;
 
-        tasks.forEach(task => {
-            const cat = analyzeTaskCategory(task.texto);
-            const div = document.createElement('div');
-            const estimatedTime = task.tiempo_estimado || 25; 
-            
-            // Lógica de visibilidad por filtro
-            let isHidden = false;
-            if (activeFilter === 'pending' && task.completada) isHidden = true;
-            if (activeFilter === 'completed' && !task.completada) isHidden = true;
+        sortedTasks.forEach(task => {
+            if (activeFilter === 'pending' && task.completada) return;
+            if (activeFilter === 'completed' && !task.completada) return;
 
-            div.className = `task-item ${task.completada ? 'completed' : ''} ${isHidden ? 'hidden' : ''}`;
+            const cat = analyzeCategory(task.texto);
+            const prioClass = `prio-${task.prioridad || 'media'}`;
+            const prioLabel = task.prioridad ? task.prioridad.toUpperCase() : 'MEDIA';
+            
+            const div = document.createElement('div');
+            div.className = `task-item ${task.completada ? 'completed' : ''}`;
+            
             div.innerHTML = `
-                <button class="icon-btn btn-check" aria-label="Completar" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
+                <button class="icon-btn btn-check" aria-label="Marcar como completada"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
                 <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
                 <div class="task-content">
                     <span class="task-text">${task.texto}</span>
                     <div class="task-meta">
-                        <span>${cat.name}</span>
-                        <span class="time-badge"><i class='bx bx-time'></i> ${estimatedTime}m</span>
+                        <span class="priority-badge ${prioClass}" aria-label="Prioridad ${prioLabel}">${prioLabel}</span>
+                        <span class="time-badge"><i class='bx bx-time'></i> ${task.tiempo_estimado || 25}m</span>
                     </div>
                 </div>
                 <div class="task-actions">
-                    ${!task.completada ? `<button class="btn-focus-clear" title="Enfocar" data-time="${estimatedTime}"><i class='bx bx-target-lock'></i> Enfocar</button>` : ''}
-                    <button class="icon-btn btn-listen" data-text="${task.texto}" title="Escuchar"><i class='bx bx-volume-full'></i></button>
-                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}"><i class='bx bx-trash'></i></button>
+                    ${!task.completada ? `<button class="btn-focus-clear" data-time="${task.tiempo_estimado || 25}" aria-label="Enfocar en esta tarea"><i class='bx bx-target-lock'></i> Enfocar</button>` : ''}
+                    <button class="icon-btn btn-listen" data-text="${task.texto}" aria-label="Leer tarea en voz alta"><i class='bx bx-volume-full'></i></button>
+                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}" aria-label="Eliminar tarea"><i class='bx bx-trash'></i></button>
                 </div>
             `;
             
+            div.querySelector('.btn-delete').addEventListener('click', async (e) => { await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id); fetchTasks(); });
+            div.querySelector('.btn-check').addEventListener('click', async (e) => { const state = task.completada; await supabase.from('tareas').update({ completada: !state }).eq('id', task.id); fetchTasks(); });
+            div.querySelector('.btn-listen').addEventListener('click', (e) => window.readTextAloud(e.currentTarget.dataset.text));
+
             const btnFocus = div.querySelector('.btn-focus-clear');
             if (btnFocus) {
                 btnFocus.addEventListener('click', (e) => {
                     currentFocusTask = task; focusTaskTitle.textContent = task.texto; 
-                    defaultTime = parseInt(e.currentTarget.dataset.time); timeLeft = defaultTime * 60;
-                    updateTimerDisplay();
+                    defaultTime = parseInt(e.currentTarget.dataset.time); timeLeft = defaultTime * 60; updateTimerDisplay();
                     btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Iniciar`; btnTimerToggle.classList.remove('hidden'); btnTimerComplete.classList.add('hidden');
                     dashboardView.classList.add('hidden'); statsView.classList.add('hidden'); focusView.classList.remove('hidden');
                 });
             }
-
-            div.querySelector('.btn-delete').addEventListener('click', async (e) => { await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id); fetchTasks(); });
-            div.querySelector('.btn-check').addEventListener('click', async (e) => { const state = e.currentTarget.dataset.state === 'true'; await supabase.from('tareas').update({ completada: !state }).eq('id', e.currentTarget.dataset.id); fetchTasks(); });
-            div.querySelector('.btn-listen').addEventListener('click', (e) => window.readTextAloud(e.currentTarget.dataset.text));
             
             taskList.appendChild(div);
         });
@@ -351,9 +295,10 @@ document.addEventListener('DOMContentLoaded', () => {
     btnAdd.addEventListener('click', async () => {
         if (!taskInput.value) return;
         btnAdd.disabled = true;
-        await supabase.from('tareas').insert([{ texto: taskInput.value, tiempo_estimado: selectedTimeEstimate }]);
+        await supabase.from('tareas').insert([{ texto: taskInput.value, tiempo_estimado: selectedTimeEstimate, prioridad: prioritySelect.value }]);
         taskInput.value = ''; btnAdd.disabled = false; fetchTasks();
     });
+
     taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnAdd.click(); });
 
     fetchTasks();

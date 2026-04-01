@@ -1,63 +1,77 @@
-/* Botón de Voz con Borde Gradiente Animado */
-.btn-voice {
+/* Soporte para animar variables en CSS moderno */
+@property --angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+/* El efecto de borde gradiente animado del video */
+.neon-card {
     position: relative;
-    background-color: var(--bg-dark);
-    color: white;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    border-radius: var(--radius);
-    z-index: 1;
-    overflow: hidden;
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 20px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 500px;
+    z-index: 10;
 }
 
-.gradient-border::before {
+.neon-card::before, .neon-card::after {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: conic-gradient(transparent, transparent, transparent, var(--primary-color));
-    animation: rotate 2s linear infinite;
-    z-index: -2;
-    opacity: 0;
-    /* Oculto por defecto */
-    transition: opacity 0.3s;
-}
-
-.gradient-border::after {
-    content: '';
-    position: absolute;
-    inset: 3px;
-    /* Grosor del borde */
-    background: var(--bg-dark);
-    border-radius: calc(var(--radius) - 2px);
+    inset: -3px;
     z-index: -1;
+    background: conic-gradient(from var(--angle), transparent 60%, var(--neon-1), var(--neon-2));
+    border-radius: 22px;
+    animation: spin 4s linear infinite;
 }
 
-/* Cuando el microfono está escuchando */
-.btn-voice.listening::before {
-    opacity: 1;
+.neon-card::before {
+    filter: blur(1.5rem);
+    opacity: 0.5; /* Brillo exterior */
 }
 
-.btn-voice.listening {
-    color: var(--primary-color);
+@keyframes spin {
+    from { --angle: 0deg; }
+    to { --angle: 360deg; }
 }
 
-@keyframes rotate {
-    100% {
-        transform: rotate(360deg);
-    }
+/* Fondos abstractos para darle estilo */
+.blob {
+    position: absolute;
+    filter: blur(80px);
+    z-index: 1;
+    opacity: 0.4;
+    border-radius: 50%;
+    animation: float 10s ease-in-out infinite alternate;
 }
 
-.voice-status {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    margin-top: 0.5rem;
-    display: none;
-    /* Se muestra con JS */
+.blob-1 {
+    width: 300px;
+    height: 300px;
+    background: var(--neon-1);
+    top: -10%;
+    left: -10%;
+}
+
+.blob-2 {
+    width: 400px;
+    height: 400px;
+    background: var(--neon-2);
+    bottom: -10%;
+    right: -10%;
+    animation-delay: -5s;
+}
+
+@keyframes float {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(50px, 50px); }
+}
+
+/* Animación de entrada para las tareas */
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }

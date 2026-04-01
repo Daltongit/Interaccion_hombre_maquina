@@ -1,35 +1,29 @@
 :root {
-    /* Fondo oscuro puro para que resalten los neones */
-    --bg-base: #050505;
+    /* Paleta de colores de Alto Contraste y Accesibilidad */
+    --bg-body: #f3f4f6;
+    --bg-surface: #ffffff;
+    --text-main: #111827;
+    --text-muted: #4b5563;
     
-    /* Colores del gradiente de los videos */
-    --neon-1: #ff00ff;
-    --neon-2: #00ffff;
+    --primary: #2563eb; 
+    --primary-hover: #1d4ed8;
+    --danger: #dc2626; 
+    --danger-hover: #b91c1c;
+    --border: #e5e7eb;
     
-    /* Texto con alto contraste (Accesibilidad) */
-    --text-main: #ffffff;
-    --text-muted: #a1a1aa;
-    
-    /* Glassmorphism */
-    --glass-bg: rgba(20, 20, 20, 0.6);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    
-    --font-main: 'Outfit', sans-serif;
+    --radius: 12px;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
 }
 
 body {
-    font-family: var(--font-main);
-    background-color: var(--bg-base);
+    font-family: 'Inter', system-ui, sans-serif;
+    background-color: var(--bg-body);
     color: var(--text-main);
-    min-height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    overflow: hidden; /* Para los blobs de fondo */
+    line-height: 1.5;
 }

@@ -3,54 +3,80 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskPro - Cloud Sync</title>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700&display=swap" rel="stylesheet">
+    <title>ClaroTask - Gestor Visual</title>
+    <!-- Fuente muy legible (Accesibilidad) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/animaciones.css">
-    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Efectos de fondo estilo video -->
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
+    <div class="app-layout">
+        <!-- Menú de Navegación Intuitivo -->
+        <nav class="sidebar" aria-label="Menú principal">
+            <div class="logo">
+                <i class='bx bx-check-square'></i>
+                <span>ClaroTask</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#" class="active"><i class='bx bx-list-ul'></i> <span>Mis Tareas</span></a></li>
+                <li><a href="#"><i class='bx bx-calendar'></i> <span>Calendario</span></a></li>
+                <li><a href="#"><i class='bx bx-cog'></i> <span>Ajustes</span></a></li>
+            </ul>
+        </nav>
 
-    <div class="app-container">
-        <!-- Tarjeta principal con el efecto de borde gradiente -->
-        <main class="neon-card">
-            <header>
-                <div class="header-title">
-                    <i class='bx bx-cloud-lightning glow-icon'></i>
-                    <h1>TaskPro</h1>
-                </div>
-                <p>Sincronización en la nube mediante Supabase.</p>
+        <main class="main-content">
+            <header class="page-header">
+                <h1>Mis Tareas Visuales</h1>
+                <p>Añade tareas con texto o usando tu cámara para mayor claridad.</p>
             </header>
 
-            <section class="task-input-section">
-                <div class="input-glass-wrapper">
-                    <input type="text" id="task-input" placeholder="¿Qué vamos a hacer hoy?" aria-label="Nueva tarea">
-                    <button id="btn-add" class="btn-neon" aria-label="Añadir tarea">
-                        <i class='bx bx-send'></i>
-                    </button>
+            <!-- Controles de Entrada (Claridad y Eficiencia) -->
+            <section class="input-section">
+                <div class="input-card">
+                    <label for="task-input" class="sr-only">Escribe una tarea</label>
+                    <input type="text" id="task-input" placeholder="Ej. Tomar la medicina a las 8 PM">
+                    
+                    <div class="action-buttons">
+                        <button id="btn-camera" class="btn-secondary" aria-label="Tomar foto de la tarea">
+                            <i class='bx bx-camera'></i> Usar Cámara
+                        </button>
+                        <button id="btn-add" class="btn-primary" aria-label="Guardar tarea">
+                            <i class='bx bx-save'></i> Guardar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Modal de la Cámara (La función novedosa) -->
+                <div id="camera-container" class="camera-container hidden">
+                    <video id="camera-stream" autoplay playsinline></video>
+                    <button id="btn-capture" class="btn-primary"><i class='bx bx-aperture'></i> Capturar Foto</button>
+                    <button id="btn-close-camera" class="btn-danger"><i class='bx bx-x'></i> Cancelar</button>
+                    <canvas id="canvas" hidden></canvas>
+                </div>
+                <!-- Vista previa de la foto tomada -->
+                <div id="photo-preview-container" class="hidden">
+                    <p>Foto adjunta a la tarea:</p>
+                    <img id="photo-preview" src="" alt="Vista previa de la tarea">
+                    <button id="btn-remove-photo" class="btn-danger btn-small">Quitar foto</button>
                 </div>
             </section>
 
-            <section class="task-list-section">
-                <div class="list-header">
-                    <h3>Tus Tareas</h3>
-                    <span id="sync-status" class="sync-status"><i class='bx bx-check-circle'></i> Sincronizado</span>
+            <!-- Lista de Tareas -->
+            <section class="tasks-section">
+                <div class="section-title">
+                    <h2>Tareas Pendientes</h2>
+                    <span id="sync-status" class="badge"><i class='bx bx-cloud'></i> Sincronizado</span>
                 </div>
-                <ul id="task-list" class="task-list">
-                    <!-- Tareas inyectadas con JS -->
-                    <li class="loading-text">Cargando desde Supabase...</li>
-                </ul>
+                <div id="task-list" class="task-grid">
+                    <p class="empty-state">Cargando tus tareas...</p>
+                </div>
             </section>
         </main>
     </div>
 
-    <div id="toast-container"></div>
+    <!-- Contenedor de notificaciones -->
+    <div id="toast-container" aria-live="polite"></div>
 
-    <!-- Script como módulo para poder importar Supabase -->
-    <script type="module" src="js/main.js"></script>
+    <script type="module" src="app.js"></script>
 </body>
 </html>

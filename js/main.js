@@ -26,17 +26,49 @@ document.addEventListener('DOMContentLoaded', () => {
     let isTimerRunning = false;
     let defaultTime = 25;
     let timeLeft = 0;
-    const circumference = 2 * Math.PI * 115; // Matemáticas del SVG (radio 115)
+    const circumference = 2 * Math.PI * 115; 
 
-    // --- 1. RELOJ POMODORO VISUAL (ANILLO) ---
     timerProgress.style.strokeDasharray = circumference;
 
+    // --- 1. ACCESIBILIDAD: Alerta Visual y Háptica (Para sordera) ---
+    function triggerVisualAlert() {
+        const hasVisualAlerts = localStorage.getItem('visualAlerts') === 'true';
+        if (hasVisualAlerts) {
+            // Flash en pantalla
+            document.body.classList.add('screen-flash');
+            setTimeout(() => document.body.classList.remove('screen-flash'), 1500);
+            
+            // Vibración en dispositivos móviles
+            if (navigator.vibrate) {
+                navigator.vibrate([500, 200, 500, 200, 1000]); 
+            }
+        } else {
+            // Si no tiene sordera, suena la campanilla suave
+            playChime();
+        }
+    }
+
+    function playChime() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.5);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 1.5);
+    }
+
+    // --- 2. RELOJ POMODORO VISUAL ---
     function updateTimerDisplay() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
         timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-        // Lógica del anillo visual (Retroalimentación sin sonido)
         const totalSeconds = defaultTime * 60;
         const percentage = timeLeft / totalSeconds;
         const offset = circumference - (percentage * circumference);
@@ -64,6 +96,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     timerProgress.style.strokeDashoffset = circumference;
                     window.showToast("¡Tiempo terminado! Buen trabajo.", "bx-party");
                     btnTimerToggle.classList.add('hidden');
+                    
+                    // Dispara la alerta de accesibilidad
+                    triggerVisualAlert();
                 }
             }, 1000);
         }
@@ -88,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dashboardView.classList.remove('hidden');
     });
 
-    // --- 2. SISTEMA DE DESGLOSE MÁGICO INTELIGENTE ---
+    // --- 3. SISTEMA DE DESGLOSE MÁGICO ---
     function generateSubtasks(text) {
         const t = text.toLowerCase();
         if (t.includes('correr') || t.includes('ejercicio') || t.includes('gimnasio')) {
@@ -109,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
     }
 
-    // --- 3. CATEGORIZADOR Y RENDERIZADO ---
+    // --- 4. CATEGORIZADOR ---
     function analyzeTaskCategory(text) {
         const lowerText = text.toLowerCase();
         if (lowerText.match(/(ejercicio|gym|gimnasio|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
@@ -145,7 +180,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `task-item ${task.completada ? 'completed' : ''}`;
             
-            // Botones CLAROS y etiquetados
             div.innerHTML = `
                 <button class="icon-btn btn-check" aria-label="Completar" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
                 <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
@@ -153,23 +187,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="task-text">${task.texto}</span>
                     <div class="task-meta">
                         <span>${cat.name}</span>
-                        ${!task.completada ? `<button class="btn-magic" data-text="${task.texto}"><i class='bx bx-magic-wand'></i> Desglosar</button>` : ''}
+                        ${!task.completada ? `<button class="btn-magic" aria-label="Desglosar tarea" data-text="${task.texto}"><i class='bx bx-magic-wand'></i> Desglosar</button>` : ''}
                     </div>
                     <div class="subtasks-container hidden" id="subtasks-${task.id}"></div>
                 </div>
                 <div class="task-actions">
-                    ${!task.completada ? `<button class="btn-focus-clear" title="Enfocar en esta tarea"><i class='bx bx-target-lock'></i> Enfocar</button>` : ''}
-                    <button class="icon-btn btn-listen" data-text="${task.texto}" title="Leer en voz alta"><i class='bx bx-volume-full'></i></button>
-                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}" title="Eliminar"><i class='bx bx-trash'></i></button>
+                    ${!task.completada ? `<button class="btn-focus-clear" aria-label="Enfocar en esta tarea" title="Enfocar en esta tarea"><i class='bx bx-target-lock'></i> Enfocar</button>` : ''}
+                    <button class="icon-btn btn-listen" aria-label="Leer en voz alta" data-text="${task.texto}" title="Leer en voz alta"><i class='bx bx-volume-full'></i></button>
+                    <button class="icon-btn btn-delete" aria-label="Eliminar tarea" style="color:var(--danger)" data-id="${task.id}" title="Eliminar"><i class='bx bx-trash'></i></button>
                 </div>
             `;
             
-            // EVENTO 1: Iniciar Modo Enfoque
             const btnFocus = div.querySelector('.btn-focus-clear');
             if (btnFocus) {
                 btnFocus.addEventListener('click', () => {
                     currentFocusTask = task;
-                    focusTaskTitle.textContent = task.texto; // Pone el nombre de la tarea en grande
+                    focusTaskTitle.textContent = task.texto; 
                     
                     defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
                     timeLeft = defaultTime * 60;
@@ -184,7 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // EVENTO 2: Desglose Mágico Inteligente
             const btnMagic = div.querySelector('.btn-magic');
             if (btnMagic) {
                 btnMagic.addEventListener('click', (e) => {
@@ -201,7 +233,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // EVENTOS: Eliminar, Completar y Escuchar
             div.querySelector('.btn-delete').addEventListener('click', async (e) => {
                 await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id);
                 fetchTasks();
@@ -217,7 +248,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // AÑADIR TAREA NUEVA
     btnAdd.addEventListener('click', async () => {
         if (!taskInput.value) return;
         btnAdd.disabled = true;
@@ -229,8 +259,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnAdd.click(); });
 
-    // --- 4. MICRÓFONO (Manejo de Errores de Brave/Chrome) ---
+    // --- 5. MICRÓFONO ---
     btnDictate.addEventListener('click', () => {
+        if (navigator.brave && navigator.brave.isBrave) {
+            window.showToast('Estás en Brave. Desactiva los escudos (icono del león) o usa Chrome para usar la voz.', 'bx-shield-x');
+            return;
+        }
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
 
@@ -256,7 +291,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btnDictate.classList.remove('listening');
             voiceIndicator.classList.add('hidden');
             if(e.error === 'network') {
-                window.showToast('Tu navegador (como Brave) bloquea el micrófono por privacidad. Usa texto.', 'bx-shield-x');
+                window.showToast('Error de red. Revisa los escudos de privacidad.', 'bx-wifi-off');
             } else {
                 window.showToast(`Error: ${e.error}`, 'bx-error');
             }

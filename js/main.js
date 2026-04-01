@@ -1,266 +1,234 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// Conexión a Supabase
 const supabaseUrl = 'https://vsoglrbjadkkagffdzsf.supabase.co';
 const supabaseKey = 'sb_publishable_gzLqFJK-EbbKqxxPMrLkAQ_d-qRJnf7';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Referencias al DOM
+    // --- VARIABLES GLOBALES ---
     const taskInput = document.getElementById('task-input');
     const btnAdd = document.getElementById('btn-add');
     const taskList = document.getElementById('task-list');
     const syncStatus = document.getElementById('sync-status');
     const btnDictate = document.getElementById('btn-dictate');
     const voiceIndicator = document.getElementById('voice-indicator');
-    
-    // Progreso
     const progressBarFill = document.getElementById('progress-bar-fill');
     const progressText = document.getElementById('progress-text');
 
-    // Modo Enfoque
+    // MODO ENFOQUE DOM
     const navFocus = document.getElementById('nav-focus');
     const btnExitFocus = document.getElementById('btn-exit-focus');
     const dashboardView = document.getElementById('dashboard-view');
     const focusView = document.getElementById('focus-view');
     const focusTaskCard = document.getElementById('focus-task-card');
+    const timerDisplay = document.getElementById('timer-display');
+    const btnTimerToggle = document.getElementById('btn-timer-toggle');
+    const btnTimerComplete = document.getElementById('btn-timer-complete');
+    const timerBtnText = document.getElementById('timer-btn-text');
+    const focusSubtitle = document.getElementById('focus-subtitle');
 
     let activeTasks = [];
+    let currentFocusTask = null; // Tarea que estamos haciendo en modo enfoque
 
-    // --- 1. CATEGORIZADOR INTELIGENTE ---
-    function analyzeTaskCategory(text) {
-        const lowerText = text.toLowerCase();
-        
-        if (lowerText.match(/(ejercicio|gym|gimnasio|correr|entrenar|pesas)/)) {
-            return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
-        } else if (lowerText.match(/(deberes|tarea|estudiar|leer|examen|matemáticas|universidad)/)) {
-            return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
-        } else if (lowerText.match(/(medicina|pastilla|doctor|salud|cita médica)/)) {
-            return { cat: 'salud', icon: 'bx-plus-medical', name: 'Salud' };
-        } else if (lowerText.match(/(limpiar|cocinar|barrer|platos|ropa|hogar)/)) {
-            return { cat: 'hogar', icon: 'bx-home-heart', name: 'Hogar' };
-        } else if (lowerText.match(/(comprar|supermercado|pagar|tienda|leche|pan|mercado)/)) {
-            return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
-        } else if (lowerText.match(/(reunión|cliente|correo|informe|trabajo)/)) {
-            return { cat: 'trabajo', icon: 'bx-briefcase', name: 'Trabajo' };
-        }
-        return { cat: 'general', icon: 'bx-list-check', name: 'General' };
+    // --- LÓGICA DEL RELOJ POMODORO ---
+    let timerInterval;
+    let isTimerRunning = false;
+    // Leer el tiempo guardado en ajustes (por defecto 25 min)
+    let defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
+    let timeLeft = defaultTime * 60; 
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    // --- 2. CONTROL DEL MICRÓFONO ---
-    btnDictate.addEventListener('click', () => {
-        if (window.location.protocol === 'file:') {
-            window.showToast('Aviso: El micrófono requiere un servidor local o internet para funcionar por seguridad del navegador.', 'bx-shield-x');
-            return;
-        }
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'es-ES';
-            
-            recognition.onstart = () => {
-                btnDictate.classList.add('listening');
-                voiceIndicator.classList.remove('hidden');
-            };
-            
-            recognition.onresult = (e) => {
-                const transcript = e.results[0][0].transcript;
-                taskInput.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
-                window.showToast('Voz procesada. Revisa y pulsa Añadir.', 'bx-microphone');
-            };
-            
-            recognition.onend = () => {
-                btnDictate.classList.remove('listening');
-                voiceIndicator.classList.add('hidden');
-            };
-
-            recognition.onerror = (e) => {
-                window.showToast(`Error de voz: ${e.error}`, 'bx-error');
-                btnDictate.classList.remove('listening');
-                voiceIndicator.classList.add('hidden');
-            };
-
-            recognition.start();
+    btnTimerToggle.addEventListener('click', () => {
+        if (isTimerRunning) {
+            // Pausar
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerBtnText.textContent = 'Reanudar';
+            btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Reanudar`;
+            focusSubtitle.textContent = "Reloj en pausa.";
         } else {
-            window.showToast('Tu navegador no soporta comandos de voz.', 'bx-error');
+            // Iniciar
+            isTimerRunning = true;
+            btnTimerToggle.innerHTML = `<i class='bx bx-pause'></i> Pausar`;
+            focusSubtitle.textContent = "Concéntrate. El tiempo está corriendo...";
+            btnTimerComplete.classList.remove('hidden'); // Aparece el botón de terminar
+
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    timerDisplay.textContent = "00:00";
+                    window.showToast("¡Tiempo terminado! ¡Excelente trabajo!", "bx-party");
+                    btnTimerToggle.classList.add('hidden');
+                }
+            }, 1000);
         }
     });
 
-    // --- 3. BARRA DE PROGRESO ---
-    function updateProgress(tasks) {
-        if (tasks.length === 0) {
-            progressBarFill.style.width = '0%';
-            progressText.textContent = '0 de 0 completadas';
-            return;
+    btnTimerComplete.addEventListener('click', async () => {
+        clearInterval(timerInterval);
+        if (currentFocusTask) {
+            btnTimerComplete.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando...";
+            await supabase.from('tareas').update({ completada: true }).eq('id', currentFocusTask.id);
+            window.showToast('¡Tarea completada con éxito!', 'bx-check-double');
+            fetchTasks(); // Actualizar lista principal
         }
-        const completed = tasks.filter(t => t.completada).length;
-        const total = tasks.length;
-        const percentage = (completed / total) * 100;
-        
-        progressBarFill.style.width = `${percentage}%`;
-        progressText.textContent = `${completed} de ${total} completadas`;
+        btnExitFocus.click(); // Salir del modo enfoque
+    });
+
+    // --- CATEGORIZADOR ---
+    function analyzeTaskCategory(text) {
+        const lowerText = text.toLowerCase();
+        if (lowerText.match(/(ejercicio|gym|gimnasio|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
+        if (lowerText.match(/(deberes|tarea|estudiar|leer)/)) return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
+        if (lowerText.match(/(medicina|pastilla|doctor)/)) return { cat: 'salud', icon: 'bx-plus-medical', name: 'Salud' };
+        if (lowerText.match(/(limpiar|cocinar)/)) return { cat: 'hogar', icon: 'bx-home-heart', name: 'Hogar' };
+        if (lowerText.match(/(comprar|pagar|supermercado)/)) return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
+        return { cat: 'general', icon: 'bx-list-check', name: 'General' };
     }
 
-    // --- 4. OBTENER Y RENDERIZAR TAREAS ---
+    // --- MICRÓFONO MEJORADO ---
+    btnDictate.addEventListener('click', () => {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        
+        recognition.onstart = () => {
+            btnDictate.classList.add('listening');
+            voiceIndicator.classList.remove('hidden');
+        };
+        
+        recognition.onresult = (e) => {
+            taskInput.value = e.results[0][0].transcript;
+            window.showToast('Voz procesada.', 'bx-microphone');
+        };
+        
+        recognition.onend = () => {
+            btnDictate.classList.remove('listening');
+            voiceIndicator.classList.add('hidden');
+        };
+
+        // EXPLICACIÓN DEL ERROR NETWORK
+        recognition.onerror = (e) => {
+            btnDictate.classList.remove('listening');
+            voiceIndicator.classList.add('hidden');
+            if(e.error === 'network') {
+                window.showToast('Chrome requiere conexión a internet para convertir tu voz a texto.', 'bx-wifi-off');
+            } else if (e.error === 'not-allowed') {
+                window.showToast('Permite el acceso al micrófono en el navegador.', 'bx-lock-alt');
+            } else {
+                window.showToast(`Error: ${e.error}`, 'bx-error');
+            }
+        };
+
+        recognition.start();
+    });
+
+    // --- SUPABASE Y RENDER ---
     async function fetchTasks() {
-        try {
-            syncStatus.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Sincronizando...`;
-            syncStatus.style.color = 'var(--text-muted)';
-            
-            const { data, error } = await supabase.from('tareas').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            
+        syncStatus.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i>`;
+        const { data, error } = await supabase.from('tareas').select('*').order('created_at', { ascending: false });
+        if (!error) {
             activeTasks = data.filter(t => !t.completada);
             renderTasks(data);
-            updateProgress(data);
             
-            syncStatus.innerHTML = `<i class='bx bx-cloud-check'></i> Sincronizado`;
-            syncStatus.style.color = 'var(--success)';
-        } catch (error) {
-            console.error(error);
-            window.showToast('Error de conexión con la base de datos', 'bx-error');
-            syncStatus.innerHTML = `<i class='bx bx-error'></i> Error`;
-            syncStatus.style.color = 'var(--danger)';
+            // Progreso
+            const completed = data.filter(t => t.completada).length;
+            const total = data.length;
+            progressBarFill.style.width = total === 0 ? '0%' : `${(completed/total)*100}%`;
+            progressText.textContent = `${completed} de ${total} completadas`;
+            syncStatus.innerHTML = `<i class='bx bx-cloud-check'></i>`;
         }
     }
 
     function renderTasks(tasks) {
         taskList.innerHTML = '';
-        
-        // Tutorial Integrado
-        if (tasks.length === 0) {
-            taskList.innerHTML = `
-                <div class="tutorial-state">
-                    <h3>¡Bienvenido a FocusFlow! 🚀</h3>
-                    <div class="tutorial-steps">
-                        <div class="step">
-                            <div class="step-icon"><i class='bx bx-pencil'></i></div>
-                            <p><strong>1. Escribe o dicta</strong><br>Añade tareas como "hacer ejercicio" o "deberes".</p>
-                        </div>
-                        <div class="step">
-                            <div class="step-icon"><i class='bx bx-category'></i></div>
-                            <p><strong>2. Categorización</strong><br>Le pondremos el ícono y color automáticamente.</p>
-                        </div>
-                        <div class="step">
-                            <div class="step-icon"><i class='bx bx-target-lock'></i></div>
-                            <p><strong>3. Modo Enfoque</strong><br>Úsalo para concentrarte en una sola cosa a la vez.</p>
-                        </div>
-                    </div>
-                </div>
-            `;
+        if(tasks.length === 0) {
+            taskList.innerHTML = '<p style="text-align:center; padding: 2rem; color:var(--text-muted)">Añade tu primera tarea arriba.</p>';
             return;
         }
 
-        // Renderizar Lista
         tasks.forEach(task => {
-            const categoryInfo = analyzeTaskCategory(task.texto);
+            const cat = analyzeTaskCategory(task.texto);
             const div = document.createElement('div');
             div.className = `task-item ${task.completada ? 'completed' : ''}`;
-            
             div.innerHTML = `
-                <button class="icon-btn btn-check" aria-label="${task.completada ? 'Desmarcar' : 'Marcar'} tarea" data-id="${task.id}" data-state="${task.completada}">
-                    <i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i>
-                </button>
-                <div class="cat-icon cat-${categoryInfo.cat}">
-                    <i class='bx ${categoryInfo.icon}'></i>
-                </div>
+                <button class="icon-btn btn-check" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
+                <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
                 <div class="task-content">
                     <span class="task-text">${task.texto}</span>
-                    <span class="task-meta">${categoryInfo.name}</span>
+                    <span class="task-meta">${cat.name}</span>
                 </div>
                 <div class="task-actions">
-                    <button class="icon-btn btn-listen" aria-label="Escuchar tarea" data-text="${task.texto}" title="Leer en voz alta">
-                        <i class='bx bx-volume-full'></i>
-                    </button>
-                    <button class="icon-btn btn-delete" style="color: var(--danger);" aria-label="Eliminar tarea" data-id="${task.id}" title="Eliminar">
-                        <i class='bx bx-trash'></i>
-                    </button>
+                    <button class="icon-btn btn-listen" data-text="${task.texto}"><i class='bx bx-volume-full'></i></button>
+                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}"><i class='bx bx-trash'></i></button>
                 </div>
             `;
-
-            // Evento: Leer en voz alta
-            div.querySelector('.btn-listen').addEventListener('click', (e) => {
-                window.readTextAloud(e.currentTarget.dataset.text);
-            });
-
-            // Evento: Eliminar tarea
+            // Eliminar
             div.querySelector('.btn-delete').addEventListener('click', async (e) => {
-                const id = e.currentTarget.dataset.id;
-                div.style.opacity = '0.5';
-                await supabase.from('tareas').delete().eq('id', id);
-                window.showToast('Tarea eliminada', 'bx-trash');
+                await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id);
                 fetchTasks();
             });
-
-            // Evento: Marcar como completada/pendiente
+            // Completar
             div.querySelector('.btn-check').addEventListener('click', async (e) => {
-                const id = e.currentTarget.dataset.id;
-                const currentState = e.currentTarget.dataset.state === 'true';
-                await supabase.from('tareas').update({ completada: !currentState }).eq('id', id);
+                const state = e.currentTarget.dataset.state === 'true';
+                await supabase.from('tareas').update({ completada: !state }).eq('id', e.currentTarget.dataset.id);
                 fetchTasks();
             });
-
+            // Escuchar
+            div.querySelector('.btn-listen').addEventListener('click', (e) => window.readTextAloud(e.currentTarget.dataset.text));
+            
             taskList.appendChild(div);
         });
     }
 
-    // --- 5. AÑADIR NUEVA TAREA ---
+    // AÑADIR TAREA
     btnAdd.addEventListener('click', async () => {
-        const text = taskInput.value.trim();
-        if (!text) {
-            window.showToast('Por favor, escribe una tarea primero', 'bx-info-circle');
-            return;
-        }
-
+        if (!taskInput.value) return;
         btnAdd.disabled = true;
-        syncStatus.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i> Guardando...`;
-        
-        const catInfo = analyzeTaskCategory(text);
-
-        try {
-            const { error } = await supabase.from('tareas').insert([{ texto: text, categoria: catInfo.cat }]);
-            if (error) throw error;
-            
-            taskInput.value = '';
-            window.showToast('¡Nueva tarea guardada!', 'bx-check');
-            fetchTasks();
-        } catch (error) {
-            console.error(error);
-            window.showToast('Error al guardar la tarea', 'bx-error');
-        } finally {
-            btnAdd.disabled = false;
-        }
+        await supabase.from('tareas').insert([{ texto: taskInput.value }]);
+        taskInput.value = '';
+        btnAdd.disabled = false;
+        fetchTasks();
     });
 
-    // Permite añadir tarea pulsando Enter en el teclado
-    taskInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            btnAdd.click();
-        }
-    });
-
-    // --- 6. MODO ENFOQUE ---
+    // MODO ENFOQUE ACTIVACIÓN
     navFocus.addEventListener('click', (e) => {
         e.preventDefault();
-        if (activeTasks.length === 0) {
-            window.showToast('No tienes tareas pendientes para enfocar.', 'bx-info-circle');
-            return;
-        }
+        if (activeTasks.length === 0) return window.showToast('Sin tareas pendientes para enfocar.', 'bx-info-circle');
         
-        // Toma la tarea activa más antigua
-        const focusTask = activeTasks[activeTasks.length - 1]; 
-        focusTaskCard.textContent = focusTask.texto;
+        currentFocusTask = activeTasks[activeTasks.length - 1]; 
+        focusTaskCard.textContent = currentFocusTask.texto;
+        
+        // Reset Reloj
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        timeLeft = defaultTime * 60;
+        updateTimerDisplay();
+        btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Iniciar`;
+        btnTimerToggle.classList.remove('hidden');
+        btnTimerComplete.classList.add('hidden');
+        btnTimerComplete.innerHTML = `<i class='bx bx-check'></i> ¡Completada!`;
+        focusSubtitle.textContent = "Evita distracciones. Tú puedes.";
         
         dashboardView.classList.add('hidden');
         focusView.classList.remove('hidden');
     });
 
     btnExitFocus.addEventListener('click', () => {
+        clearInterval(timerInterval);
         focusView.classList.add('hidden');
         dashboardView.classList.remove('hidden');
     });
 
-    // Arrancar la aplicación pidiendo las tareas
     fetchTasks();
 });

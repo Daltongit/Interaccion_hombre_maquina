@@ -9,7 +9,10 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
-    <script>if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
+    <script>
+        if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        if(localStorage.getItem('dyslexiaMode') === 'true') document.documentElement.classList.add('dyslexia-mode');
+    </script>
 </head>
 <body>
     <div class="app-layout">

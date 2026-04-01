@@ -1,77 +1,24 @@
-/* Soporte para animar variables en CSS moderno */
-@property --angle {
-    syntax: '<angle>';
-    initial-value: 0deg;
-    inherits: false;
+/* Retroalimentación Visual y Transiciones */
+#toast-container { 
+    position: fixed; 
+    bottom: 20px; 
+    right: 20px; 
+    z-index: 1000; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 10px; 
 }
 
-/* El efecto de borde gradiente animado del video */
-.neon-card {
-    position: relative;
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border-radius: 20px;
-    padding: 2.5rem;
-    width: 100%;
-    max-width: 500px;
-    z-index: 10;
+.toast { 
+    background-color: var(--text-main); 
+    color: white; 
+    padding: 1rem 1.5rem; 
+    border-radius: 8px; 
+    box-shadow: var(--shadow); 
+    animation: slideIn 0.3s ease; 
 }
 
-.neon-card::before, .neon-card::after {
-    content: '';
-    position: absolute;
-    inset: -3px;
-    z-index: -1;
-    background: conic-gradient(from var(--angle), transparent 60%, var(--neon-1), var(--neon-2));
-    border-radius: 22px;
-    animation: spin 4s linear infinite;
-}
-
-.neon-card::before {
-    filter: blur(1.5rem);
-    opacity: 0.5; /* Brillo exterior */
-}
-
-@keyframes spin {
-    from { --angle: 0deg; }
-    to { --angle: 360deg; }
-}
-
-/* Fondos abstractos para darle estilo */
-.blob {
-    position: absolute;
-    filter: blur(80px);
-    z-index: 1;
-    opacity: 0.4;
-    border-radius: 50%;
-    animation: float 10s ease-in-out infinite alternate;
-}
-
-.blob-1 {
-    width: 300px;
-    height: 300px;
-    background: var(--neon-1);
-    top: -10%;
-    left: -10%;
-}
-
-.blob-2 {
-    width: 400px;
-    height: 400px;
-    background: var(--neon-2);
-    bottom: -10%;
-    right: -10%;
-    animation-delay: -5s;
-}
-
-@keyframes float {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(50px, 50px); }
-}
-
-/* Animación de entrada para las tareas */
-@keyframes slideUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+@keyframes slideIn { 
+    from { transform: translateX(100%); opacity: 0; } 
+    to { transform: translateX(0); opacity: 1; } 
 }

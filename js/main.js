@@ -1,6 +1,5 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-// Conexión a tu Base de Datos
 const supabaseUrl = 'https://vsoglrbjadkkagffdzsf.supabase.co';
 const supabaseKey = 'sb_publishable_gzLqFJK-EbbKqxxPMrLkAQ_d-qRJnf7';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -11,149 +10,177 @@ document.addEventListener('DOMContentLoaded', () => {
     const taskList = document.getElementById('task-list');
     const syncStatus = document.getElementById('sync-status');
     
-    const btnCamera = document.getElementById('btn-camera');
-    const cameraContainer = document.getElementById('camera-container');
-    const cameraStream = document.getElementById('camera-stream');
-    const btnCapture = document.getElementById('btn-capture');
-    const btnCloseCamera = document.getElementById('btn-close-camera');
-    const canvas = document.getElementById('canvas');
-    const photoPreviewContainer = document.getElementById('photo-preview-container');
-    const photoPreview = document.getElementById('photo-preview');
-    const btnRemovePhoto = document.getElementById('btn-remove-photo');
+    // Elementos del Voice Assistant
+    const btnDictate = document.getElementById('btn-dictate');
+    const voiceIndicator = document.getElementById('voice-indicator');
 
-    let currentPhotoBase64 = null;
-    let stream = null;
+    // Elementos Modo Enfoque
+    const navFocus = document.getElementById('nav-focus');
+    const btnExitFocus = document.getElementById('btn-exit-focus');
+    const dashboardView = document.getElementById('dashboard-view');
+    const focusView = document.getElementById('focus-view');
+    const focusTaskCard = document.getElementById('focus-task-card');
+    
+    let activeTasks = [];
 
-    // --- CÁMARA ---
-    btnCamera.addEventListener('click', async () => {
-        cameraContainer.classList.remove('hidden');
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            cameraStream.srcObject = stream;
-        } catch (err) {
-            window.showToast('Error: No se pudo acceder a la cámara.');
-            cameraContainer.classList.add('hidden');
+    // --- 1. CATEGORIZADOR INTELIGENTE ---
+    // Analiza el texto para asignar un color e icono (Ayuda visual)
+    function analyzeTaskCategory(text) {
+        const lowerText = text.toLowerCase();
+        if (lowerText.match(/(comprar|supermercado|pagar|tienda|leche|pan)/)) {
+            return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
+        } else if (lowerText.match(/(estudiar|leer|capítulo|tarea|universidad|examen)/)) {
+            return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
+        } else if (lowerText.match(/(reunión|cliente|correo|informe|trabajo)/)) {
+            return { cat: 'trabajo', icon: 'bx-briefcase', name: 'Trabajo' };
         }
-    });
-
-    btnCapture.addEventListener('click', () => {
-        canvas.width = cameraStream.videoWidth;
-        canvas.height = cameraStream.videoHeight;
-        canvas.getContext('2d').drawImage(cameraStream, 0, 0);
-        currentPhotoBase64 = canvas.toDataURL('image/jpeg', 0.5); 
-        
-        photoPreview.src = currentPhotoBase64;
-        photoPreviewContainer.classList.remove('hidden');
-        
-        stopCamera();
-        window.showToast('Foto capturada correctamente.');
-    });
-
-    btnCloseCamera.addEventListener('click', stopCamera);
-
-    btnRemovePhoto.addEventListener('click', () => {
-        currentPhotoBase64 = null;
-        photoPreviewContainer.classList.add('hidden');
-    });
-
-    function stopCamera() {
-        if (stream) stream.getTracks().forEach(track => track.stop());
-        cameraContainer.classList.add('hidden');
+        return { cat: 'general', icon: 'bx-list-check', name: 'General' };
     }
 
-    // --- SUPABASE Y RENDERIZADO ---
-    function updateSyncStatus(text, color) {
-        syncStatus.innerHTML = text;
+    // --- 2. COMANDOS DE VOZ (Reconocimiento) ---
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        
+        recognition.onstart = () => {
+            btnDictate.classList.add('listening');
+            voiceIndicator.classList.remove('hidden');
+        };
+        
+        recognition.onresult = (e) => {
+            const transcript = e.results[0][0].transcript;
+            taskInput.value = transcript.charAt(0).toUpperCase() + transcript.slice(1);
+            window.showToast('Voz procesada. Revisa y añade.', 'bx-microphone');
+        };
+        
+        recognition.onend = () => {
+            btnDictate.classList.remove('listening');
+            voiceIndicator.classList.add('hidden');
+        };
+
+        btnDictate.addEventListener('click', () => recognition.start());
+    } else {
+        btnDictate.style.display = 'none';
+    }
+
+    // --- 3. SUPABASE: GESTIÓN DE TAREAS ---
+    function updateSyncUI(status, icon, color) {
+        syncStatus.innerHTML = `<i class='bx ${icon}'></i> ${status}`;
         syncStatus.style.color = color;
     }
 
     async function fetchTasks() {
         try {
-            updateSyncStatus("<i class='bx bx-loader-alt bx-spin'></i> Cargando...", '#4b5563');
+            updateSyncUI('Sincronizando...', 'bx-loader-alt bx-spin', 'var(--text-muted)');
             const { data, error } = await supabase.from('tareas').select('*').order('created_at', { ascending: false });
-            
             if (error) throw error;
             
-            taskList.innerHTML = '';
-            if (data.length === 0) {
-                taskList.innerHTML = '<p class="empty-state">No hay tareas. ¡Añade tu primera tarea visual!</p>';
-            } else {
-                data.forEach(task => renderTask(task));
-            }
-            updateSyncStatus("<i class='bx bx-cloud'></i> Sincronizado", '#065f46');
+            activeTasks = data.filter(t => !t.completada); // Guardar para modo enfoque
+            renderTasks(data);
+            updateSyncUI('Sincronizado', 'bx-cloud-check', 'var(--success)');
         } catch (error) {
-            console.error(error);
-            window.showToast('Error al conectar con la base de datos.');
+            window.showToast('Error de conexión', 'bx-error');
         }
     }
 
-    function renderTask(task) {
-        const card = document.createElement('div');
-        card.className = 'task-card';
-        
-        let imgHTML = task.imagen_b64 ? `<img src="${task.imagen_b64}" alt="Imagen de la tarea">` : '';
-        
-        card.innerHTML = `
-            ${imgHTML}
-            <p class="task-text">${task.texto}</p>
-            <div class="task-actions">
-                <button class="btn-secondary btn-small btn-read" aria-label="Leer tarea en voz alta">
-                    <i class='bx bx-volume-full'></i> Escuchar
-                </button>
-                <button class="btn-danger btn-small btn-delete" aria-label="Eliminar tarea">
-                    <i class='bx bx-trash'></i> Eliminar
-                </button>
-            </div>
-        `;
-
-        // Uso de la función de voice-nav.js
-        card.querySelector('.btn-read').addEventListener('click', () => {
-            window.readTextAloud(task.texto);
-            window.showToast('Leyendo tarea...');
-        });
-
-        // Eliminar tarea
-        card.querySelector('.btn-delete').addEventListener('click', async () => {
-            card.style.opacity = '0.5';
-            await supabase.from('tareas').delete().eq('id', task.id);
-            card.remove();
-            window.showToast('Tarea eliminada');
-        });
-
-        taskList.appendChild(card);
-    }
-
-    // Añadir nueva tarea
-    btnAdd.addEventListener('click', async () => {
-        const text = taskInput.value.trim();
-        if (!text && !currentPhotoBase64) {
-            window.showToast('Debes escribir una tarea o tomar una foto.');
+    function renderTasks(tasks) {
+        taskList.innerHTML = '';
+        if (tasks.length === 0) {
+            taskList.innerHTML = '<div style="text-align:center; padding: 2rem; color: var(--text-muted);">No tienes tareas pendientes. ¡Excelente!</div>';
             return;
         }
 
-        updateSyncStatus("<i class='bx bx-loader-alt bx-spin'></i> Guardando...", '#4b5563');
+        tasks.forEach(task => {
+            const categoryInfo = analyzeTaskCategory(task.texto);
+            const div = document.createElement('div');
+            div.className = `task-item ${task.completada ? 'completed' : ''}`;
+            
+            div.innerHTML = `
+                <button class="icon-btn btn-check" aria-label="Marcar completada" data-id="${task.id}" data-state="${task.completada}">
+                    <i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i>
+                </button>
+                <div class="cat-icon cat-${categoryInfo.cat}">
+                    <i class='bx ${categoryInfo.icon}'></i>
+                </div>
+                <div class="task-content">
+                    <span class="task-text">${task.texto}</span>
+                    <span class="task-meta">${categoryInfo.name}</span>
+                </div>
+                <div class="task-actions">
+                    <button class="icon-btn btn-listen" aria-label="Escuchar" data-text="${task.texto}">
+                        <i class='bx bx-volume-full'></i>
+                    </button>
+                    <button class="icon-btn btn-delete" style="color: var(--danger);" aria-label="Eliminar" data-id="${task.id}">
+                        <i class='bx bx-trash'></i>
+                    </button>
+                </div>
+            `;
+
+            // Eventos de botones
+            div.querySelector('.btn-listen').addEventListener('click', (e) => {
+                window.readTextAloud(e.currentTarget.dataset.text);
+            });
+
+            div.querySelector('.btn-delete').addEventListener('click', async (e) => {
+                const id = e.currentTarget.dataset.id;
+                div.style.opacity = '0.5';
+                await supabase.from('tareas').delete().eq('id', id);
+                window.showToast('Tarea eliminada', 'bx-trash');
+                fetchTasks();
+            });
+
+            div.querySelector('.btn-check').addEventListener('click', async (e) => {
+                const id = e.currentTarget.dataset.id;
+                const currentState = e.currentTarget.dataset.state === 'true';
+                await supabase.from('tareas').update({ completada: !currentState }).eq('id', id);
+                fetchTasks();
+            });
+
+            taskList.appendChild(div);
+        });
+    }
+
+    btnAdd.addEventListener('click', async () => {
+        const text = taskInput.value.trim();
+        if (!text) return window.showToast('Escribe una tarea primero', 'bx-info-circle');
+
         btnAdd.disabled = true;
+        updateSyncUI('Guardando...', 'bx-loader-alt bx-spin', 'var(--text-muted)');
+
+        const catInfo = analyzeTaskCategory(text);
 
         try {
-            const { error } = await supabase.from('tareas').insert([{ 
-                texto: text || "Tarea visual (Sin texto añadido)", 
-                imagen_b64: currentPhotoBase64 
-            }]);
-
+            const { error } = await supabase.from('tareas').insert([{ texto: text, categoria: catInfo.cat }]);
             if (error) throw error;
-
-            window.showToast('Tarea guardada con éxito.');
             taskInput.value = '';
-            if (currentPhotoBase64) btnRemovePhoto.click(); 
+            window.showToast('¡Nueva tarea guardada!', 'bx-check');
             fetchTasks();
         } catch (error) {
-            console.error(error);
-            window.showToast('Error al guardar la tarea.');
+            window.showToast('Error al guardar', 'bx-error');
         } finally {
             btnAdd.disabled = false;
         }
     });
 
-    // Iniciar carga de tareas
+    // --- 4. MODO ENFOQUE (Ayuda TDAH) ---
+    navFocus.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (activeTasks.length === 0) return window.showToast('No hay tareas pendientes para enfocar', 'bx-info-circle');
+        
+        // Toma la tarea más antigua que no esté completada
+        const focusTask = activeTasks[activeTasks.length - 1]; 
+        focusTaskCard.textContent = focusTask.texto;
+        
+        dashboardView.classList.add('hidden');
+        focusView.classList.remove('hidden');
+    });
+
+    btnExitFocus.addEventListener('click', () => {
+        focusView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+    });
+
+    // Iniciar app
     fetchTasks();
 });

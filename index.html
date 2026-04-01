@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
-    <!-- Script para cargar el modo oscuro antes de que renderice la página -->
     <script>if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
 </head>
 <body>
@@ -21,14 +20,12 @@
             </div>
             <ul class="nav-links">
                 <li><a href="index.html" class="active"><i class='bx bx-layout'></i> Panel Principal</a></li>
-                <li><a href="#" id="nav-focus"><i class='bx bx-target-lock'></i> Modo Enfoque</a></li>
                 <li class="spacer"></li>
                 <li><a href="configuracion.html"><i class='bx bx-cog'></i> Ajustes</a></li>
             </ul>
         </nav>
 
         <main class="main-content">
-            <!-- PANEL PRINCIPAL -->
             <div id="dashboard-view">
                 <header class="page-header">
                     <div>
@@ -71,23 +68,20 @@
                 </section>
             </div>
 
-            <!-- MODO ENFOQUE (AQUÍ ESTÁ LA MAGIA) -->
             <div id="focus-view" class="hidden">
-                <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Volver al panel</button>
+                <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Abandonar Enfoque</button>
                 <div class="focus-container">
                     <h2 class="focus-title">Concéntrate solo en esto:</h2>
                     <div id="focus-task-card" class="focus-task-card">Cargando tarea...</div>
                     
-                    <!-- Reloj Interactivo -->
                     <div class="timer-display" id="timer-display">25:00</div>
                     
-                    <!-- Botones que sí funcionan -->
                     <div class="focus-controls">
                         <button id="btn-timer-toggle" class="btn-primary btn-large">
-                            <i class='bx bx-play'></i> <span id="timer-btn-text">Iniciar</span>
+                            <i class='bx bx-play'></i> Iniciar
                         </button>
                         <button id="btn-timer-complete" class="btn-success btn-large hidden">
-                            <i class='bx bx-check'></i> ¡Completada!
+                            <i class='bx bx-check'></i> ¡Terminé!
                         </button>
                     </div>
                     <p class="focus-subtitle" id="focus-subtitle">Evita distracciones. Tú puedes.</p>

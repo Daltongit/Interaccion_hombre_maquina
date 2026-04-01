@@ -1,11 +1,14 @@
-// Retroalimentación: Lógica global para los Toasts
-window.showToast = function(message) {
+window.showToast = function(message, icon = 'bx-info-circle') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = 'toast';
-    toast.textContent = message;
-    container.appendChild(toast);
+    toast.innerHTML = `<i class='bx ${icon}'></i> ${message}`;
     
-    // Desaparece después de 3 segundos
-    setTimeout(() => { toast.remove(); }, 3000);
+    container.appendChild(toast);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.3s ease';
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
 };

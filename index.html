@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/animaciones.css">
+    <!-- Script para cargar el modo oscuro antes de que renderice la página -->
+    <script>if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');</script>
 </head>
 <body>
     <div class="app-layout">
@@ -18,7 +20,7 @@
                 <span>FocusFlow</span>
             </div>
             <ul class="nav-links">
-                <li><a href="#" class="active"><i class='bx bx-layout'></i> Panel Principal</a></li>
+                <li><a href="index.html" class="active"><i class='bx bx-layout'></i> Panel Principal</a></li>
                 <li><a href="#" id="nav-focus"><i class='bx bx-target-lock'></i> Modo Enfoque</a></li>
                 <li class="spacer"></li>
                 <li><a href="configuracion.html"><i class='bx bx-cog'></i> Ajustes</a></li>
@@ -26,6 +28,7 @@
         </nav>
 
         <main class="main-content">
+            <!-- PANEL PRINCIPAL -->
             <div id="dashboard-view">
                 <header class="page-header">
                     <div>
@@ -39,10 +42,10 @@
 
                 <section class="input-section">
                     <div class="smart-input-container">
-                        <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz" title="Habla tu tarea">
+                        <button id="btn-dictate" class="icon-btn" aria-label="Dictar tarea por voz">
                             <i class='bx bx-microphone'></i>
                         </button>
-                        <input type="text" id="task-input" placeholder="Ej: Hacer ejercicio, Deberes de matemáticas, Comprar pan..." aria-label="Escribe tu nueva tarea">
+                        <input type="text" id="task-input" placeholder="Ej: Hacer ejercicio, Estudiar matemáticas...">
                         <button id="btn-add" class="btn-primary" aria-label="Añadir tarea">
                             <i class='bx bx-plus'></i> Añadir
                         </button>
@@ -64,25 +67,36 @@
                     <div class="tasks-header">
                         <h2>Tus Tareas</h2>
                     </div>
-                    <div id="task-list" class="task-list">
-                        </div>
+                    <div id="task-list" class="task-list"></div>
                 </section>
             </div>
 
+            <!-- MODO ENFOQUE (AQUÍ ESTÁ LA MAGIA) -->
             <div id="focus-view" class="hidden">
                 <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Volver al panel</button>
                 <div class="focus-container">
                     <h2 class="focus-title">Concéntrate solo en esto:</h2>
                     <div id="focus-task-card" class="focus-task-card">Cargando tarea...</div>
-                    <div class="timer-display">25:00</div>
-                    <p class="focus-subtitle">Evita distracciones. Tú puedes.</p>
+                    
+                    <!-- Reloj Interactivo -->
+                    <div class="timer-display" id="timer-display">25:00</div>
+                    
+                    <!-- Botones que sí funcionan -->
+                    <div class="focus-controls">
+                        <button id="btn-timer-toggle" class="btn-primary btn-large">
+                            <i class='bx bx-play'></i> <span id="timer-btn-text">Iniciar</span>
+                        </button>
+                        <button id="btn-timer-complete" class="btn-success btn-large hidden">
+                            <i class='bx bx-check'></i> ¡Completada!
+                        </button>
+                    </div>
+                    <p class="focus-subtitle" id="focus-subtitle">Evita distracciones. Tú puedes.</p>
                 </div>
             </div>
         </main>
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-
     <script src="js/feedback.js"></script>
     <script src="js/voice-nav.js"></script>
     <script type="module" src="js/main.js"></script>

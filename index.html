@@ -4,23 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ClaroTask - Gestor Visual</title>
-    <!-- Fuente muy legible (Accesibilidad) -->
+    <!-- Fuentes e Iconos -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- Estructura de CSS respetada -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/animaciones.css">
 </head>
 <body>
     <div class="app-layout">
-        <!-- Menú de Navegación Intuitivo -->
+        <!-- Menú Lateral -->
         <nav class="sidebar" aria-label="Menú principal">
             <div class="logo">
                 <i class='bx bx-check-square'></i>
                 <span>ClaroTask</span>
             </div>
             <ul class="nav-links">
-                <li><a href="#" class="active"><i class='bx bx-list-ul'></i> <span>Mis Tareas</span></a></li>
-                <li><a href="#"><i class='bx bx-calendar'></i> <span>Calendario</span></a></li>
-                <li><a href="#"><i class='bx bx-cog'></i> <span>Ajustes</span></a></li>
+                <li><a href="index.html" class="active"><i class='bx bx-list-ul'></i> <span>Mis Tareas</span></a></li>
+                <li><a href="configuracion.html"><i class='bx bx-cog'></i> <span>Ajustes</span></a></li>
             </ul>
         </nav>
 
@@ -30,7 +33,6 @@
                 <p>Añade tareas con texto o usando tu cámara para mayor claridad.</p>
             </header>
 
-            <!-- Controles de Entrada (Claridad y Eficiencia) -->
             <section class="input-section">
                 <div class="input-card">
                     <label for="task-input" class="sr-only">Escribe una tarea</label>
@@ -46,22 +48,21 @@
                     </div>
                 </div>
 
-                <!-- Modal de la Cámara (La función novedosa) -->
+                <!-- Modal de la Cámara -->
                 <div id="camera-container" class="camera-container hidden">
                     <video id="camera-stream" autoplay playsinline></video>
                     <button id="btn-capture" class="btn-primary"><i class='bx bx-aperture'></i> Capturar Foto</button>
                     <button id="btn-close-camera" class="btn-danger"><i class='bx bx-x'></i> Cancelar</button>
                     <canvas id="canvas" hidden></canvas>
                 </div>
-                <!-- Vista previa de la foto tomada -->
+                
                 <div id="photo-preview-container" class="hidden">
-                    <p>Foto adjunta a la tarea:</p>
+                    <p>Foto adjunta:</p>
                     <img id="photo-preview" src="" alt="Vista previa de la tarea">
                     <button id="btn-remove-photo" class="btn-danger btn-small">Quitar foto</button>
                 </div>
             </section>
 
-            <!-- Lista de Tareas -->
             <section class="tasks-section">
                 <div class="section-title">
                     <h2>Tareas Pendientes</h2>
@@ -74,9 +75,11 @@
         </main>
     </div>
 
-    <!-- Contenedor de notificaciones -->
     <div id="toast-container" aria-live="polite"></div>
 
-    <script type="module" src="app.js"></script>
+    <!-- Estructura de JS respetada -->
+    <script src="js/feedback.js"></script>
+    <script src="js/voice-nav.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>

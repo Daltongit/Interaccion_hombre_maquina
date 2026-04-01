@@ -1,106 +1,316 @@
-.app-layout { display: flex; height: 100vh; overflow: hidden; }
-.sidebar { width: 280px; background-color: var(--bg-surface); border-right: 1px solid var(--border); padding: 2rem 1.5rem; display: flex; flex-direction: column; transition: var(--transition); z-index: 100; }
-.logo { display: flex; align-items: center; gap: 1rem; font-size: 1.5rem; font-weight: 700; margin-bottom: 3rem; color: var(--text-main); }
-.logo-icon { background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-.nav-links { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
-.spacer { flex: 1; }
-.nav-links a { display: flex; align-items: center; gap: 1rem; padding: 1rem; text-decoration: none; color: var(--text-muted); font-weight: 600; border-radius: var(--radius-sm); transition: var(--transition); outline: none; }
-.nav-links a i { font-size: 1.25rem; }
-.nav-links a:hover, .nav-links a:focus { background-color: var(--bg-body); color: var(--text-main); }
-.nav-links a.active { background-color: var(--primary); color: white; }
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
 
-.main-content { flex: 1; overflow-y: auto; padding: 3rem 4rem; position: relative; }
-.page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 3rem; }
-.page-header h1 { font-size: 2.25rem; font-weight: 700; margin-bottom: 0.5rem; }
-.page-header p { color: var(--text-muted); font-size: 1.1rem; }
-.cloud-status { display: flex; align-items: center; gap: 0.5rem; background: var(--bg-surface); padding: 0.5rem 1rem; border-radius: 20px; box-shadow: var(--shadow-sm); font-size: 0.875rem; font-weight: 600; border: 1px solid var(--border); }
+const supabaseUrl = 'https://vsoglrbjadkkagffdzsf.supabase.co';
+const supabaseKey = 'sb_publishable_gzLqFJK-EbbKqxxPMrLkAQ_d-qRJnf7';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-/* Input y Estimador de Tiempo */
-.smart-input-container { display: flex; align-items: center; gap: 1rem; background: var(--bg-surface); padding: 0.75rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md); border: 1px solid var(--border); transition: var(--transition); }
-.smart-input-container:focus-within { border-color: var(--primary); }
-.icon-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0.5rem; border-radius: 50%; transition: var(--transition); outline: none; }
-.icon-btn:hover, .icon-btn:focus { color: var(--primary); background: var(--bg-body); }
-input[type="text"], input[type="number"] { flex: 1; border: none; outline: none; font-size: 1.1rem; color: var(--text-main); font-family: inherit; background: transparent; }
-input::placeholder { color: #9CA3AF; }
+document.addEventListener('DOMContentLoaded', () => {
+    const taskInput = document.getElementById('task-input');
+    const btnAdd = document.getElementById('btn-add');
+    const taskList = document.getElementById('task-list');
+    const syncStatus = document.getElementById('sync-status');
+    const btnDictate = document.getElementById('btn-dictate');
+    
+    // UI del Reloj y Enfoque
+    const dashboardView = document.getElementById('dashboard-view');
+    const focusView = document.getElementById('focus-view');
+    const focusTaskTitle = document.getElementById('focus-task-title');
+    const timerDisplay = document.getElementById('timer-display');
+    const timerProgress = document.getElementById('timer-progress');
+    const btnTimerToggle = document.getElementById('btn-timer-toggle');
+    const btnTimerComplete = document.getElementById('btn-timer-complete');
+    const btnExitFocus = document.getElementById('btn-exit-focus');
 
-button { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.875rem 1.5rem; font-size: 1rem; font-weight: 600; border: none; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; transition: var(--transition); outline: none; }
-button:focus { box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.4); }
-.btn-primary { background-color: var(--primary); color: white; }
-.btn-primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
-.btn-secondary { background: var(--bg-surface); color: var(--text-main); border: 1px solid var(--border); }
-.btn-secondary:hover { background: var(--bg-body); }
-.btn-success { background-color: var(--success); color: white; }
-.btn-magic { background: #8B5CF6; color: white; font-size: 0.85rem; padding: 0.4rem 0.8rem; border-radius: 20px; }
-.btn-magic:hover { background: #7C3AED; }
-.btn-focus-clear { background: var(--primary); color: white; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 8px; }
-.btn-focus-clear:hover { background: var(--primary-hover); }
+    // UI Brain Dump (Caja de Distracciones)
+    const dumpInput = document.getElementById('dump-input');
+    const btnDump = document.getElementById('btn-dump');
+    const dumpList = document.getElementById('dump-list');
 
-/* Novedad: Selector de Tiempo */
-.time-estimator { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; padding-left: 0.5rem; }
-.estimator-label { font-size: 0.9rem; color: var(--text-muted); font-weight: 500; }
-.time-chips { display: flex; gap: 0.5rem; }
-.chip { background: var(--bg-surface); border: 1px solid var(--border); color: var(--text-muted); padding: 0.4rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: var(--transition); }
-.chip:hover { border-color: var(--primary); color: var(--primary); }
-.chip.active { background: rgba(79, 70, 229, 0.1); border-color: var(--primary); color: var(--primary); }
+    // Estado
+    let currentFocusTask = null; 
+    let timerInterval = null;
+    let isTimerRunning = false;
+    let defaultTime = 25; 
+    let timeLeft = 0;
+    let selectedTimeEstimate = 25; // Tiempo por defecto al crear tarea
+    const circumference = 2 * Math.PI * 115; 
 
-/* Progreso y Tareas */
-.progress-section { background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 2rem; margin-top: 1.5rem; }
-.progress-header { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-weight: 600; }
-.progress-text { color: var(--text-muted); font-size: 0.9rem; }
-.progress-bar-bg { background: var(--border); height: 12px; border-radius: 10px; overflow: hidden; }
-.progress-bar-fill { background: var(--success); height: 100%; width: 0%; transition: width 0.5s ease-in-out; }
+    timerProgress.style.strokeDasharray = circumference;
 
-.task-list { display: flex; flex-direction: column; gap: 1rem; }
-.task-item { display: flex; align-items: center; gap: 1rem; background: var(--bg-surface); padding: 1.25rem 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border); transition: var(--transition); }
-.task-item.completed { opacity: 0.5; }
-.task-item.completed .task-text { text-decoration: line-through; }
+    // --- 1. GESTIÓN DEL TIEMPO ESTIMADO (CHIPS) ---
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(chip => {
+        chip.addEventListener('click', (e) => {
+            chips.forEach(c => c.classList.remove('active'));
+            e.currentTarget.classList.add('active');
+            selectedTimeEstimate = parseInt(e.currentTarget.dataset.time);
+        });
+    });
 
-.cat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0; }
-.cat-compras { background: rgba(245, 158, 11, 0.2); color: var(--cat-compras); }
-.cat-estudio { background: rgba(139, 92, 246, 0.2); color: var(--cat-estudio); }
-.cat-trabajo { background: rgba(59, 130, 246, 0.2); color: var(--cat-trabajo); }
-.cat-general { background: rgba(148, 163, 184, 0.2); color: var(--cat-general); }
-.cat-ejercicio { background: rgba(16, 185, 129, 0.2); color: var(--cat-ejercicio); }
-.cat-salud { background: rgba(239, 68, 68, 0.2); color: var(--cat-salud); }
-.cat-hogar { background: rgba(236, 72, 153, 0.2); color: var(--cat-hogar); }
+    // --- 2. CAJA DE DISTRACCIONES (BRAIN DUMP) ---
+    // Guarda el pensamiento intrusivo silenciosamente en la BD
+    btnDump.addEventListener('click', async () => {
+        const text = dumpInput.value.trim();
+        if (!text) return;
+        
+        btnDump.disabled = true;
+        // Añade a la interfaz temporal
+        const li = document.createElement('li');
+        li.innerHTML = `<i class='bx bx-check'></i> ${text}`;
+        dumpList.appendChild(li);
+        
+        // Guarda en Supabase con la categoría 'general' y tiempo rápido (5m)
+        await supabase.from('tareas').insert([{ 
+            texto: `[Idea] ${text}`, 
+            categoria: 'general',
+            tiempo_estimado: 5
+        }]);
+        
+        dumpInput.value = '';
+        btnDump.disabled = false;
+        window.showToast("Anotado. No pierdas el enfoque.", "bx-brain");
+        fetchTasks(); // Actualiza la lista por debajo
+    });
+    dumpInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') btnDump.click(); });
 
-.task-content { flex: 1; display: flex; flex-direction: column; gap: 0.3rem; }
-.task-text { font-size: 1.1rem; font-weight: 500; color: var(--text-main); display: block; }
-.task-meta { font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 1rem; align-items: center; }
-.time-badge { background: var(--bg-body); padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 600; color: var(--primary); }
+    // --- 3. RECOMPENSA Y ALERTAS ---
+    function triggerReward() {
+        // Confeti de Dopamina
+        if (typeof confetti === 'function') {
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        }
+        
+        // Alerta Visual/Háptica si está activada
+        if (localStorage.getItem('visualAlerts') === 'true') {
+            document.body.classList.add('screen-flash');
+            setTimeout(() => document.body.classList.remove('screen-flash'), 1500);
+            if (navigator.vibrate) navigator.vibrate([500, 200, 500]); 
+        } else {
+            playChime();
+        }
+    }
 
-.subtasks-container { background: var(--bg-body); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; border: 1px dashed var(--border); }
-.subtask-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+    function playChime() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); 
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.5);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 1.5);
+    }
 
-/* --- Modo Enfoque y Brain Dump --- */
-#focus-view { height: 100%; display: flex; flex-direction: column; }
-.focus-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 3rem; flex: 1; margin-top: 1rem; }
+    // --- 4. RELOJ POMODORO VISUAL ---
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 
-.focus-container { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-.focus-title { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 2rem; font-weight: 500; }
-.focus-controls { display: flex; gap: 1rem; margin-top: 2rem; }
-.btn-large { padding: 1rem 2.5rem; font-size: 1.25rem; border-radius: 100px; }
+        const totalSeconds = defaultTime * 60;
+        const percentage = timeLeft / totalSeconds;
+        const offset = circumference - (percentage * circumference);
+        timerProgress.style.strokeDashoffset = offset;
+    }
 
-.timer-circle-container { position: relative; width: 280px; height: 280px; margin: 0 auto; }
-.timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.timer-bg { fill: none; stroke: var(--border); stroke-width: 8; }
-.timer-progress { fill: none; stroke: var(--primary); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 722; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
-.timer-display-absolute { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4.5rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; letter-spacing: -2px; }
+    btnTimerToggle.addEventListener('click', () => {
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Reanudar`;
+        } else {
+            isTimerRunning = true;
+            btnTimerToggle.innerHTML = `<i class='bx bx-pause'></i> Pausar`;
+            btnTimerComplete.classList.remove('hidden');
 
-/* Caja de Pensamientos Intrusivos */
-.brain-dump-container { background: var(--bg-surface); border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 2rem; display: flex; flex-direction: column; height: 80%; margin-top: auto; margin-bottom: auto;}
-.brain-dump-container h3 { color: var(--primary); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
-.brain-dump-container p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem; }
-.dump-input-wrapper { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1.5rem; }
-.dump-input-wrapper input { border: 2px solid var(--border); padding: 0.8rem; border-radius: 8px; background: var(--bg-body); }
-.dump-list { list-style: none; overflow-y: auto; flex: 1; }
-.dump-list li { background: var(--bg-body); padding: 0.8rem; border-radius: 6px; margin-bottom: 0.5rem; font-size: 0.9rem; border-left: 3px solid var(--primary); animation: slideIn 0.3s ease; }
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                } else {
+                    clearInterval(timerInterval);
+                    isTimerRunning = false;
+                    timerDisplay.textContent = "00:00";
+                    timerProgress.style.strokeDashoffset = circumference;
+                    btnTimerToggle.classList.add('hidden');
+                    triggerReward(); // Llama a la dopamina
+                }
+            }, 1000);
+        }
+    });
 
-.hidden { display: none !important; }
+    btnTimerComplete.addEventListener('click', async () => {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        if (currentFocusTask) {
+            btnTimerComplete.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando...";
+            await supabase.from('tareas').update({ completada: true }).eq('id', currentFocusTask.id);
+            triggerReward(); // Felicita al usuario
+            fetchTasks(); 
+        }
+        setTimeout(() => btnExitFocus.click(), 1500); // Espera al confeti
+    });
 
-/* Clases de Accesibilidad */
-.dyslexia-mode { font-family: 'Comic Sans MS', 'Arial', sans-serif !important; letter-spacing: 0.08em !important; word-spacing: 0.15em !important; line-height: 1.6 !important; }
-.dyslexia-mode h1, .dyslexia-mode h2, .dyslexia-mode h3 { letter-spacing: 0.05em !important; }
-.screen-flash { animation: successFlash 1.5s ease-in-out; }
-@keyframes successFlash { 0%, 100% { background-color: var(--bg-body); } 30%, 70% { background-color: rgba(16, 185, 129, 0.3); } }
-@keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+    btnExitFocus.addEventListener('click', () => {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        dumpList.innerHTML = ''; // Limpia la caja
+        focusView.classList.add('hidden');
+        dashboardView.classList.remove('hidden');
+    });
+
+    // --- 5. DESGLOSE Y CATEGORÍAS ---
+    function generateSubtasks(text) {
+        const t = text.toLowerCase();
+        if (t.includes('correr') || t.includes('ejercicio')) return ["1. Zapatillas listas.", "2. Estirar 5 min.", "3. Ritmo suave."];
+        if (t.includes('estudiar') || t.includes('leer')) return ["1. Despejar escritorio.", "2. Leer título.", "3. 15 min sin celular."];
+        if (t.includes('limpiar') || t.includes('barrer')) return ["1. Recoger basura.", "2. Limpiar superficies.", "3. Barrer hacia puerta."];
+        return [`1. Qué necesitas para "${text}"`, "2. Haz la parte fácil 5m.", "3. Toma aire."];
+    }
+
+    function analyzeTaskCategory(text) {
+        const t = text.toLowerCase();
+        if (t.match(/(ejercicio|gym|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
+        if (t.match(/(deberes|tarea|estudiar|leer)/)) return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
+        if (t.match(/(medicina|pastilla|doctor)/)) return { cat: 'salud', icon: 'bx-plus-medical', name: 'Salud' };
+        if (t.match(/(limpiar|cocinar|cuarto)/)) return { cat: 'hogar', icon: 'bx-home-heart', name: 'Hogar' };
+        if (t.match(/(comprar|supermercado|pagar)/)) return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
+        return { cat: 'general', icon: 'bx-list-check', name: 'General' };
+    }
+
+    async function fetchTasks() {
+        syncStatus.innerHTML = `<i class='bx bx-loader-alt bx-spin'></i>`;
+        const { data, error } = await supabase.from('tareas').select('*').order('created_at', { ascending: false });
+        if (!error) {
+            renderTasks(data);
+            const completed = data.filter(t => t.completada).length;
+            const total = data.length;
+            document.getElementById('progress-bar-fill').style.width = total === 0 ? '0%' : `${(completed/total)*100}%`;
+            document.getElementById('progress-text').textContent = `${completed} de ${total} completadas`;
+            syncStatus.innerHTML = `<i class='bx bx-cloud-check'></i>`;
+        }
+    }
+
+    function renderTasks(tasks) {
+        taskList.innerHTML = '';
+        if(tasks.length === 0) {
+            taskList.innerHTML = '<p style="text-align:center; padding: 2rem; color:var(--text-muted)">¡Añade tu primera tarea para empezar!</p>';
+            return;
+        }
+
+        tasks.forEach(task => {
+            const cat = analyzeTaskCategory(task.texto);
+            const div = document.createElement('div');
+            const estimatedTime = task.tiempo_estimado || 25; // Lee el tiempo de DB
+            
+            div.className = `task-item ${task.completada ? 'completed' : ''}`;
+            div.innerHTML = `
+                <button class="icon-btn btn-check" aria-label="Completar" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
+                <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
+                <div class="task-content">
+                    <span class="task-text">${task.texto}</span>
+                    <div class="task-meta">
+                        <span>${cat.name}</span>
+                        <span class="time-badge"><i class='bx bx-time'></i> ${estimatedTime}m</span>
+                        ${!task.completada ? `<button class="btn-magic" data-text="${task.texto}"><i class='bx bx-magic-wand'></i> Desglosar</button>` : ''}
+                    </div>
+                    <div class="subtasks-container hidden" id="subtasks-${task.id}"></div>
+                </div>
+                <div class="task-actions">
+                    ${!task.completada ? `<button class="btn-focus-clear" title="Enfocar" data-time="${estimatedTime}"><i class='bx bx-target-lock'></i> Enfocar</button>` : ''}
+                    <button class="icon-btn btn-listen" data-text="${task.texto}" title="Escuchar"><i class='bx bx-volume-full'></i></button>
+                    <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}"><i class='bx bx-trash'></i></button>
+                </div>
+            `;
+            
+            // Iniciar Enfoque leyendo el tiempo estimado
+            const btnFocus = div.querySelector('.btn-focus-clear');
+            if (btnFocus) {
+                btnFocus.addEventListener('click', (e) => {
+                    currentFocusTask = task;
+                    focusTaskTitle.textContent = task.texto; 
+                    
+                    defaultTime = parseInt(e.currentTarget.dataset.time);
+                    timeLeft = defaultTime * 60;
+                    updateTimerDisplay();
+                    
+                    btnTimerToggle.innerHTML = `<i class='bx bx-play'></i> Iniciar`;
+                    btnTimerToggle.classList.remove('hidden');
+                    btnTimerComplete.classList.add('hidden');
+                    
+                    dashboardView.classList.add('hidden');
+                    focusView.classList.remove('hidden');
+                });
+            }
+
+            // Desglose Mágico
+            const btnMagic = div.querySelector('.btn-magic');
+            if (btnMagic) {
+                btnMagic.addEventListener('click', (e) => {
+                    const container = document.getElementById(`subtasks-${task.id}`);
+                    if (container.classList.contains('hidden')) {
+                        container.innerHTML = generateSubtasks(e.currentTarget.dataset.text).map(s => `<div class="subtask-item"><i class='bx bx-chevron-right'></i> ${s}</div>`).join('');
+                        container.classList.remove('hidden');
+                        e.currentTarget.innerHTML = "<i class='bx bx-collapse'></i> Ocultar";
+                    } else {
+                        container.classList.add('hidden');
+                        e.currentTarget.innerHTML = "<i class='bx bx-magic-wand'></i> Desglosar";
+                    }
+                });
+            }
+
+            // Eliminar, Completar, Escuchar
+            div.querySelector('.btn-delete').addEventListener('click', async (e) => {
+                await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id);
+                fetchTasks();
+            });
+            div.querySelector('.btn-check').addEventListener('click', async (e) => {
+                const state = e.currentTarget.dataset.state === 'true';
+                await supabase.from('tareas').update({ completada: !state }).eq('id', e.currentTarget.dataset.id);
+                fetchTasks();
+            });
+            div.querySelector('.btn-listen').addEventListener('click', (e) => window.readTextAloud(e.currentTarget.dataset.text));
+            
+            taskList.appendChild(div);
+        });
+    }
+
+    // --- AÑADIR TAREA CON ESTIMACIÓN ---
+    btnAdd.addEventListener('click', async () => {
+        if (!taskInput.value) return;
+        btnAdd.disabled = true;
+        await supabase.from('tareas').insert([{ 
+            texto: taskInput.value,
+            tiempo_estimado: selectedTimeEstimate // Se guarda el tiempo seleccionado
+        }]);
+        taskInput.value = '';
+        btnAdd.disabled = false;
+        fetchTasks();
+    });
+
+    taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnAdd.click(); });
+
+    // --- MICRÓFONO ---
+    btnDictate.addEventListener('click', () => {
+        if (navigator.brave && navigator.brave.isBrave) {
+            window.showToast('Estás en Brave. Usa texto o desactiva escudos.', 'bx-shield-x');
+            return;
+        }
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        recognition.onstart = () => { btnDictate.classList.add('listening'); };
+        recognition.onresult = (e) => { taskInput.value = e.results[0][0].transcript; };
+        recognition.onend = () => { btnDictate.classList.remove('listening'); };
+        recognition.onerror = (e) => { btnDictate.classList.remove('listening'); window.showToast(`Error: ${e.error}`, 'bx-error'); };
+        recognition.start();
+    });
+
+    fetchTasks();
+});

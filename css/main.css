@@ -30,6 +30,8 @@ button { display: inline-flex; align-items: center; justify-content: center; gap
 .btn-success { background-color: var(--success); color: white; }
 .btn-magic { background: #8B5CF6; color: white; font-size: 0.85rem; padding: 0.4rem 0.8rem; border-radius: 20px; }
 .btn-magic:hover { background: #7C3AED; }
+.btn-focus-clear { background: var(--primary); color: white; font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 8px; }
+.btn-focus-clear:hover { background: var(--primary-hover); }
 
 .progress-section { background: var(--bg-surface); padding: 1.5rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border); margin-bottom: 2rem; margin-top: 1.5rem; }
 .progress-header { display: flex; justify-content: space-between; margin-bottom: 0.8rem; font-weight: 600; }
@@ -56,7 +58,6 @@ button { display: inline-flex; align-items: center; justify-content: center; gap
 .task-text { font-size: 1.1rem; font-weight: 500; color: var(--text-main); display: block; }
 .task-meta { font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 1rem; align-items: center; }
 
-/* Subtareas del Desglose */
 .subtasks-container { background: var(--bg-body); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; border: 1px dashed var(--border); }
 .subtask-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; }
 
@@ -68,13 +69,16 @@ button { display: inline-flex; align-items: center; justify-content: center; gap
 .timer-display { font-size: 6rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; letter-spacing: -2px; margin-bottom: 1rem; }
 .focus-controls { display: flex; gap: 1rem; margin-top: 1rem; }
 .btn-large { padding: 1rem 2.5rem; font-size: 1.25rem; border-radius: 100px; }
-.mb-2 { margin-bottom: 2rem; }
-.btn-noise { background: transparent; border: 2px solid var(--primary); color: var(--primary); border-radius: 20px; padding: 0.5rem 1.5rem; }
-.btn-noise.active { background: var(--primary); color: white; animation: pulseText 2s infinite; }
 
-/* Animación Respiración Anti-Ansiedad */
-.breathe-circle { width: 80px; height: 80px; border-radius: 50%; background: rgba(79, 70, 229, 0.1); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; animation: breathe 8s infinite ease-in-out; color: var(--primary); font-weight: 600; font-size: 0.8rem; }
-@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.5); background: rgba(79, 70, 229, 0.3); } }
+/* Animación Respiración 4-7-8 */
+.breathe-wrapper { margin-bottom: 2rem; text-align: center; }
+.breathe-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; }
+.breathe-circle { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(79, 70, 229, 0.3) 100%); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto; color: var(--primary); font-weight: 600; font-size: 0.9rem; transition: transform 4s linear; transform: scale(1); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
+
+.breathe-circle.inhale { transform: scale(1.6); transition: transform 4s linear; }
+.breathe-circle.hold { transform: scale(1.6); transition: transform 7s linear; }
+.breathe-circle.exhale { transform: scale(1); transition: transform 8s linear; }
+
 .hidden { display: none !important; }
 
 /* Ajustes (Mantenido) */

@@ -14,43 +14,62 @@
     <script>
         if(localStorage.getItem('theme') === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         if(localStorage.getItem('dyslexiaMode') === 'true') document.documentElement.classList.add('dyslexia-mode');
+        if(localStorage.getItem('zenMode') === 'true') document.documentElement.classList.add('zen-mode');
     </script>
 </head>
 <body>
     <div class="app-layout">
-        <nav class="sidebar" aria-label="Navegación principal">
+        <nav class="sidebar" aria-label="Menú principal de navegación">
             <div class="logo">
                 <div class="logo-icon"><i class='bx bx-brain'></i></div>
                 <span>FocusFlow</span>
             </div>
+            
+            <div class="level-badge" aria-label="Tu nivel actual">
+                <div class="level-info">
+                    <span class="level-text">Nivel <span id="user-level">1</span></span>
+                    <span class="xp-text"><span id="user-xp">0</span> XP</span>
+                </div>
+                <div class="level-bar-bg">
+                    <div class="level-bar-fill" id="level-bar-fill"></div>
+                </div>
+            </div>
+
             <ul class="nav-links">
-                <li><a href="#" id="nav-dashboard" class="active"><i class='bx bx-layout'></i> Panel Principal</a></li>
-                <li><a href="#" id="nav-stats"><i class='bx bx-bar-chart-alt-2'></i> Mi Progreso</a></li>
+                <li><a href="#" id="nav-dashboard" class="active" aria-label="Ir al panel principal"><i class='bx bx-layout'></i> Panel Principal</a></li>
+                <li><a href="#" id="nav-stats" aria-label="Ver estadísticas y progreso"><i class='bx bx-bar-chart-alt-2'></i> Mi Progreso</a></li>
                 <li class="spacer"></li>
-                <li><a href="configuracion.html"><i class='bx bx-cog'></i> Ajustes</a></li>
+                <li><a href="configuracion.html" aria-label="Abrir ajustes de accesibilidad"><i class='bx bx-cog'></i> Ajustes</a></li>
             </ul>
-            <button id="btn-help" class="btn-help-shortcuts" aria-label="Ver atajos de teclado"><i class='bx bx-keyboard'></i> Atajos (Alt+H)</button>
+            <button id="btn-help" class="btn-help-shortcuts" aria-label="Ver atajos de teclado para accesibilidad motora"><i class='bx bx-keyboard'></i> Atajos (Alt+H)</button>
         </nav>
 
         <main class="main-content">
             <div id="dashboard-view">
                 <header class="page-header">
                     <div>
-                        <h1>¿Qué lograremos hoy?</h1>
-                        <p>Asistente cognitivo. Di "Activar modo oscuro" o "Leer tareas" al micrófono.</p>
+                        <h1 id="greeting-title">¿Qué lograremos hoy?</h1>
+                        <p>Asistente cognitivo. Usa el micrófono para comandos avanzados.</p>
                     </div>
-                    <div class="cloud-status" id="sync-status">
+                    <div class="cloud-status" id="sync-status" aria-label="Estado de sincronización con la nube">
                         <i class='bx bx-loader-alt bx-spin'></i> Conectando...
                     </div>
                 </header>
 
                 <section class="input-section">
                     <div class="smart-input-container">
-                        <button id="btn-dictate" class="icon-btn" aria-label="Comandos de voz o dictar tarea" title="Comandos de voz">
+                        <button id="btn-dictate" class="icon-btn" aria-label="Activar comandos de voz o dictar tarea" title="Comandos de voz">
                             <i class='bx bx-microphone'></i>
                         </button>
-                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas... (Alt+N para escribir)" aria-label="Nueva tarea">
-                        <button id="btn-add" class="btn-primary">
+                        <input type="text" id="task-input" placeholder="Ej: Estudiar matemáticas... (Alt+N)" aria-label="Campo para escribir nueva tarea">
+                        
+                        <select id="task-priority" class="priority-select" aria-label="Seleccionar prioridad de la tarea">
+                            <option value="alta" style="color: #EF4444;">🔴 Alta</option>
+                            <option value="media" selected style="color: #F59E0B;">🟡 Media</option>
+                            <option value="baja" style="color: #10B981;">🟢 Baja</option>
+                        </select>
+
+                        <button id="btn-add" class="btn-primary" aria-label="Añadir esta tarea a la lista">
                             <i class='bx bx-plus'></i> Añadir
                         </button>
                     </div>
@@ -58,10 +77,10 @@
                     
                     <div class="time-estimator">
                         <span class="estimator-label">Estimación:</span>
-                        <div class="time-chips" id="time-chips">
-                            <button class="chip" data-time="5"><i class='bx bx-bolt-circle'></i> 5m</button>
-                            <button class="chip active" data-time="25"><i class='bx bx-timer'></i> 25m</button>
-                            <button class="chip" data-time="50"><i class='bx bx-brain'></i> 50m</button>
+                        <div class="time-chips" id="time-chips" aria-label="Selector de tiempo estimado">
+                            <button class="chip" data-time="5" aria-label="5 minutos"><i class='bx bx-bolt-circle'></i> 5m</button>
+                            <button class="chip active" data-time="25" aria-label="25 minutos"><i class='bx bx-timer'></i> 25m</button>
+                            <button class="chip" data-time="50" aria-label="50 minutos"><i class='bx bx-brain'></i> 50m</button>
                         </div>
                     </div>
                 </section>
@@ -69,13 +88,13 @@
                 <section class="tasks-section" style="margin-top: 2rem;">
                     <div class="tasks-header">
                         <h2>Tus Tareas</h2>
-                        <div class="task-filters" id="task-filters" aria-label="Filtrar tareas">
-                            <button class="filter-btn active" data-filter="all">Todas</button>
-                            <button class="filter-btn" data-filter="pending">Pendientes</button>
-                            <button class="filter-btn" data-filter="completed">Completadas</button>
+                        <div class="task-filters" id="task-filters" aria-label="Filtrar tareas por estado">
+                            <button class="filter-btn active" data-filter="all" aria-label="Ver todas las tareas">Todas</button>
+                            <button class="filter-btn" data-filter="pending" aria-label="Ver solo tareas pendientes">Pendientes</button>
+                            <button class="filter-btn" data-filter="completed" aria-label="Ver solo tareas completadas">Completadas</button>
                         </div>
                     </div>
-                    <div id="task-list" class="task-list"></div>
+                    <div id="task-list" class="task-list" aria-live="polite"></div>
                 </section>
             </div>
 
@@ -83,7 +102,7 @@
                 <header class="page-header">
                     <div>
                         <h1>Tu Rendimiento</h1>
-                        <p>Visualiza tu esfuerzo. Cada pequeña victoria cuenta.</p>
+                        <p>Sube de nivel completando tareas. ¡Gana 50 XP por cada una!</p>
                     </div>
                 </header>
                 <div class="stats-grid">
@@ -100,22 +119,13 @@
                     <div class="stat-card">
                         <div class="stat-icon" style="color: var(--success); background: rgba(16, 185, 129, 0.1);"><i class='bx bx-time-five'></i></div>
                         <h3 id="stat-time">0m</h3>
-                        <p>Tiempo de Enfoque Ganado</p>
-                    </div>
-                </div>
-                <div class="progress-section" style="margin-top: 2rem;">
-                    <div class="progress-header">
-                        <span class="progress-title">Energía del Proyecto</span>
-                        <span id="progress-text" class="progress-text">0%</span>
-                    </div>
-                    <div class="progress-bar-bg">
-                        <div id="progress-bar-fill" class="progress-bar-fill"></div>
+                        <p>Minutos de Enfoque</p>
                     </div>
                 </div>
             </div>
 
             <div id="focus-view" class="hidden">
-                <button id="btn-exit-focus" class="btn-secondary back-btn"><i class='bx bx-arrow-back'></i> Abandonar (Esc)</button>
+                <button id="btn-exit-focus" class="btn-secondary back-btn" aria-label="Abandonar el modo enfoque y volver al panel"><i class='bx bx-arrow-back'></i> Abandonar (Esc)</button>
                 
                 <div class="focus-layout">
                     <div class="focus-container">
@@ -125,11 +135,11 @@
                                 <circle class="timer-bg" cx="125" cy="125" r="115"></circle>
                                 <circle class="timer-progress" id="timer-progress" cx="125" cy="125" r="115"></circle>
                             </svg>
-                            <div class="timer-display-absolute" id="timer-display">25:00</div>
+                            <div class="timer-display-absolute" id="timer-display" aria-live="assertive">25:00</div>
                         </div>
                         <div class="focus-controls">
-                            <button id="btn-timer-toggle" class="btn-primary btn-large"><i class='bx bx-play'></i> Iniciar</button>
-                            <button id="btn-timer-complete" class="btn-success btn-large hidden"><i class='bx bx-check'></i> ¡Terminé!</button>
+                            <button id="btn-timer-toggle" class="btn-primary btn-large" aria-label="Iniciar o pausar el temporizador"><i class='bx bx-play'></i> Iniciar</button>
+                            <button id="btn-timer-complete" class="btn-success btn-large hidden" aria-label="Marcar tarea como completada y terminar"><i class='bx bx-check'></i> ¡Terminé!</button>
                         </div>
                     </div>
 
@@ -137,10 +147,10 @@
                         <h3><i class='bx bx-bulb'></i> Pensamientos Intrusivos</h3>
                         <p>Anótalo aquí para no perder el hilo de lo que haces.</p>
                         <div class="dump-input-wrapper">
-                            <input type="text" id="dump-input" placeholder="Ej: Pagar la luz...">
-                            <button id="btn-dump" class="btn-secondary"><i class='bx bx-send'></i></button>
+                            <input type="text" id="dump-input" placeholder="Ej: Pagar la luz..." aria-label="Escribir pensamiento intrusivo">
+                            <button id="btn-dump" class="btn-secondary" aria-label="Guardar pensamiento"><i class='bx bx-send'></i></button>
                         </div>
-                        <ul id="dump-list" class="dump-list"></ul>
+                        <ul id="dump-list" class="dump-list" aria-live="polite"></ul>
                     </div>
                 </div>
             </div>
@@ -151,21 +161,18 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2><i class='bx bx-keyboard'></i> Atajos de Accesibilidad</h2>
-                <button id="btn-close-modal" class="icon-btn"><i class='bx bx-x'></i></button>
+                <button id="btn-close-modal" class="icon-btn" aria-label="Cerrar ventana de atajos"><i class='bx bx-x'></i></button>
             </div>
             <ul class="shortcuts-list">
                 <li><kbd>Alt</kbd> + <kbd>N</kbd> <span>Escribir nueva tarea</span></li>
-                <li><kbd>Alt</kbd> + <kbd>M</kbd> <span>Activar micrófono (Comandos/Dictado)</span></li>
-                <li><kbd>Alt</kbd> + <kbd>E</kbd> <span>Enfocar en la primera tarea pendiente</span></li>
+                <li><kbd>Alt</kbd> + <kbd>M</kbd> <span>Activar micrófono</span></li>
+                <li><kbd>Alt</kbd> + <kbd>E</kbd> <span>Enfocar en la primera tarea</span></li>
                 <li><kbd>Esc</kbd> <span>Salir del modo enfoque / Cerrar ventanas</span></li>
             </ul>
         </div>
     </div>
 
     <div id="toast-container" aria-live="polite"></div>
-    
-    <input type="checkbox" id="theme-toggle" style="display: none;">
-
     <script src="js/feedback.js"></script>
     <script src="js/voice-nav.js"></script>
     <script type="module" src="js/main.js"></script>

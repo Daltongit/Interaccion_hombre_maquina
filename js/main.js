@@ -24,26 +24,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentFocusTask = null; 
     let timerInterval = null;
     let isTimerRunning = false;
-    let defaultTime = 25;
+    let defaultTime = 25; // Se actualiza dinámicamente
     let timeLeft = 0;
     const circumference = 2 * Math.PI * 115; 
 
     timerProgress.style.strokeDasharray = circumference;
 
-    // --- 1. ACCESIBILIDAD: Alerta Visual y Háptica (Para sordera) ---
+    // --- 1. ACCESIBILIDAD: Alertas al terminar ---
     function triggerVisualAlert() {
         const hasVisualAlerts = localStorage.getItem('visualAlerts') === 'true';
         if (hasVisualAlerts) {
-            // Flash en pantalla
             document.body.classList.add('screen-flash');
             setTimeout(() => document.body.classList.remove('screen-flash'), 1500);
-            
-            // Vibración en dispositivos móviles
-            if (navigator.vibrate) {
-                navigator.vibrate([500, 200, 500, 200, 1000]); 
-            }
+            if (navigator.vibrate) navigator.vibrate([500, 200, 500, 200, 1000]); 
         } else {
-            // Si no tiene sordera, suena la campanilla suave
             playChime();
         }
     }
@@ -96,8 +90,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     timerProgress.style.strokeDashoffset = circumference;
                     window.showToast("¡Tiempo terminado! Buen trabajo.", "bx-party");
                     btnTimerToggle.classList.add('hidden');
-                    
-                    // Dispara la alerta de accesibilidad
                     triggerVisualAlert();
                 }
             }, 1000);
@@ -198,12 +190,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
             
+            // Iniciar Enfoque
             const btnFocus = div.querySelector('.btn-focus-clear');
             if (btnFocus) {
                 btnFocus.addEventListener('click', () => {
                     currentFocusTask = task;
                     focusTaskTitle.textContent = task.texto; 
                     
+                    // LEE EL TIEMPO CORRECTAMENTE CADA VEZ QUE ENTRAS AL MODO ENFOQUE
                     defaultTime = parseInt(localStorage.getItem('focusTimer')) || 25;
                     timeLeft = defaultTime * 60;
                     updateTimerDisplay();
@@ -217,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // Desglose Mágico
             const btnMagic = div.querySelector('.btn-magic');
             if (btnMagic) {
                 btnMagic.addEventListener('click', (e) => {
@@ -233,6 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
+            // Eventos Varios
             div.querySelector('.btn-delete').addEventListener('click', async (e) => {
                 await supabase.from('tareas').delete().eq('id', e.currentTarget.dataset.id);
                 fetchTasks();

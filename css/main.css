@@ -61,27 +61,24 @@ button { display: inline-flex; align-items: center; justify-content: center; gap
 .subtasks-container { background: var(--bg-body); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; border: 1px dashed var(--border); }
 .subtask-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.3rem; }
 
-/* Modo Enfoque */
+/* Modo Enfoque Visual (ANILLO) */
 #focus-view { height: 100%; display: flex; flex-direction: column; }
 .focus-container { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; max-width: 600px; margin: 0 auto; }
-.focus-title { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 1.5rem; font-weight: 500; }
-.focus-task-card { background: var(--bg-surface); padding: 2rem; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border); width: 100%; margin-bottom: 1.5rem; font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-.timer-display { font-size: 6rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; letter-spacing: -2px; margin-bottom: 1rem; }
-.focus-controls { display: flex; gap: 1rem; margin-top: 1rem; }
+.focus-title { font-size: 1.5rem; color: var(--text-muted); margin-bottom: 2rem; font-weight: 500; }
+.focus-subtitle { color: var(--text-muted); font-size: 1rem; margin-top: 2rem; }
+.focus-controls { display: flex; gap: 1rem; margin-top: 2rem; }
 .btn-large { padding: 1rem 2.5rem; font-size: 1.25rem; border-radius: 100px; }
 
-/* Animación Respiración 4-7-8 */
-.breathe-wrapper { margin-bottom: 2rem; text-align: center; }
-.breathe-subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 1rem; }
-.breathe-circle { width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(79, 70, 229, 0.3) 100%); border: 2px solid var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto; color: var(--primary); font-weight: 600; font-size: 0.9rem; transition: transform 4s linear; transform: scale(1); box-shadow: 0 4px 15px rgba(79, 70, 229, 0.2); }
-
-.breathe-circle.inhale { transform: scale(1.6); transition: transform 4s linear; }
-.breathe-circle.hold { transform: scale(1.6); transition: transform 7s linear; }
-.breathe-circle.exhale { transform: scale(1); transition: transform 8s linear; }
+/* Estilos del SVG del Anillo */
+.timer-circle-container { position: relative; width: 280px; height: 280px; margin: 0 auto; }
+.timer-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.timer-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+.timer-progress { fill: none; stroke: var(--primary); stroke-width: 8; stroke-linecap: round; stroke-dasharray: 722; stroke-dashoffset: 0; transition: stroke-dashoffset 1s linear; }
+.timer-display-absolute { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4.5rem; font-weight: 700; color: var(--text-main); font-variant-numeric: tabular-nums; letter-spacing: -2px; }
 
 .hidden { display: none !important; }
 
-/* Ajustes (Mantenido) */
+/* Ajustes */
 .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; }
 .settings-card { background: var(--bg-surface); padding: 2rem; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); border: 1px solid var(--border); }
 .settings-icon { width: 50px; height: 50px; background: var(--bg-body); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; color: var(--primary); margin-bottom: 1rem; }

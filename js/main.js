@@ -20,65 +20,70 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnTimerToggle = document.getElementById('btn-timer-toggle');
     const btnTimerComplete = document.getElementById('btn-timer-complete');
     const btnExitFocus = document.getElementById('btn-exit-focus');
-    const btnNoise = document.getElementById('btn-noise');
 
-    // Variables de Estado
+    // DOM Respiración
+    const breatheCircle = document.getElementById('breathe-circle');
+    const breatheText = document.getElementById('breathe-text');
+    let breatheTimeout1, breatheTimeout2, breatheTimeout3;
+
     let currentFocusTask = null; 
     let timerInterval = null;
     let isTimerRunning = false;
     let timeLeft = 0;
-    
-    // Variables para Ruido Marrón (Web Audio API)
-    let audioCtx, noiseSource, filter;
-    let isNoisePlaying = false;
 
-    // --- 1. GENERADOR DE RUIDO MARRÓN (FUNCIÓN NOVEDOSA PARA TDAH) ---
-    function toggleBrownNoise() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            let bufferSize = 2 * audioCtx.sampleRate,
-                noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate),
-                output = noiseBuffer.getChannelData(0);
-            
-            // Simular ruido
-            let lastOut = 0;
-            for (let i = 0; i < bufferSize; i++) {
-                let white = Math.random() * 2 - 1;
-                output[i] = (lastOut + (0.02 * white)) / 1.02; // Filtro matemático para ruido marrón
-                lastOut = output[i];
-                output[i] *= 3.5; 
-            }
-            
-            noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = noiseBuffer;
-            noiseSource.loop = true;
-            
-            // Suavizar el sonido
-            filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.value = 400;
-            
-            noiseSource.connect(filter);
-            filter.connect(audioCtx.destination);
-            noiseSource.start(0);
-            isNoisePlaying = true;
-        } else {
-            if (audioCtx.state === 'running') {
-                audioCtx.suspend();
-                isNoisePlaying = false;
-            } else {
-                audioCtx.resume();
-                isNoisePlaying = true;
-            }
-        }
+    // --- 1. CAMPANILLA POMODORO (RETROALIMENTACIÓN AGRADABLE) ---
+    function playChime() {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
         
-        btnNoise.classList.toggle('active', isNoisePlaying);
-        btnNoise.innerHTML = isNoisePlaying ? "<i class='bx bx-stop-circle'></i> Pausar Sonido" : "<i class='bx bx-headphone'></i> Activar Sonido de Enfoque";
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // Nota A5
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 1.5);
+        
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.5);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 1.5);
     }
 
-    btnNoise.addEventListener('click', toggleBrownNoise);
+    // --- 2. RESPIRACIÓN 4-7-8 (USABILIDAD REAL CONTRA ANSIEDAD) ---
+    function runBreathingCycle() {
+        if(focusView.classList.contains('hidden')) return;
 
-    // --- 2. RELOJ POMODORO FUNCIONAL ---
+        breatheText.textContent = "Inhala...";
+        breatheCircle.className = "breathe-circle inhale";
+
+        breatheTimeout1 = setTimeout(() => {
+            if(focusView.classList.contains('hidden')) return;
+            breatheText.textContent = "Mantén...";
+            breatheCircle.className = "breathe-circle hold";
+
+            breatheTimeout2 = setTimeout(() => {
+                if(focusView.classList.contains('hidden')) return;
+                breatheText.textContent = "Exhala...";
+                breatheCircle.className = "breathe-circle exhale";
+
+                breatheTimeout3 = setTimeout(() => {
+                    runBreathingCycle(); // Repetir ciclo
+                }, 8000);
+            }, 7000);
+        }, 4000);
+    }
+
+    function stopBreathing() {
+        clearTimeout(breatheTimeout1);
+        clearTimeout(breatheTimeout2);
+        clearTimeout(breatheTimeout3);
+        breatheCircle.className = "breathe-circle";
+        breatheText.textContent = "Prepárate";
+    }
+
+    // --- 3. RELOJ POMODORO FUNCIONAL ---
     function updateTimerDisplay() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
@@ -94,6 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
             isTimerRunning = true;
             btnTimerToggle.innerHTML = `<i class='bx bx-pause'></i> Pausar`;
             btnTimerComplete.classList.remove('hidden');
+            playChime(); // Suena al iniciar
 
             timerInterval = setInterval(() => {
                 if (timeLeft > 0) {
@@ -105,19 +111,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     timerDisplay.textContent = "00:00";
                     window.showToast("¡Tiempo terminado! Muy bien.", "bx-party");
                     btnTimerToggle.classList.add('hidden');
-                    
-                    if (isNoisePlaying) toggleBrownNoise(); // Apagar sonido
+                    playChime(); // Suena al terminar
                 }
             }, 1000);
         }
     });
 
-    // Cerrar y guardar tarea
     btnTimerComplete.addEventListener('click', async () => {
         clearInterval(timerInterval);
         isTimerRunning = false;
-        if (isNoisePlaying) toggleBrownNoise();
-
         if (currentFocusTask) {
             btnTimerComplete.innerHTML = "<i class='bx bx-loader-alt bx-spin'></i> Guardando...";
             await supabase.from('tareas').update({ completada: true }).eq('id', currentFocusTask.id);
@@ -130,69 +132,42 @@ document.addEventListener('DOMContentLoaded', () => {
     btnExitFocus.addEventListener('click', () => {
         clearInterval(timerInterval);
         isTimerRunning = false;
-        if (isNoisePlaying) toggleBrownNoise();
+        stopBreathing();
         focusView.classList.add('hidden');
         dashboardView.classList.remove('hidden');
     });
 
-    // --- 3. SISTEMA DE DESGLOSE MÁGICO (NOVEDAD) ---
+    // --- 4. SISTEMA DE DESGLOSE MÁGICO INTELIGENTE ---
     function generateSubtasks(text) {
+        const t = text.toLowerCase();
+        // Inteligencia basada en palabras clave
+        if (t.includes('correr') || t.includes('ejercicio') || t.includes('gimnasio')) {
+            return ["Paso 1: Ponte ropa cómoda y zapatillas adecuadas.", "Paso 2: Haz 5 minutos de estiramiento suave.", "Paso 3: Empieza a tu propio ritmo, no te apresures."];
+        } else if (t.includes('estudiar') || t.includes('leer') || t.includes('deberes') || t.includes('matemáticas')) {
+            return ["Paso 1: Despeja tu escritorio y ten agua cerca.", "Paso 2: Lee el título y haz un resumen mental.", "Paso 3: Haz 15 minutos de lectura sin distracciones."];
+        } else if (t.includes('cocinar') || t.includes('comer') || t.includes('almuerzo')) {
+            return ["Paso 1: Saca y lava todos los ingredientes necesarios.", "Paso 2: Prepara los utensilios y sartenes.", "Paso 3: Sigue la receta paso a paso y limpia al terminar."];
+        } else if (t.includes('limpiar') || t.includes('barrer') || t.includes('cuarto')) {
+            return ["Paso 1: Recoge toda la basura y ropa del suelo.", "Paso 2: Limpia las superficies (escritorio, mesas).", "Paso 3: Barre o aspira de adentro hacia la puerta."];
+        } else if (t.includes('comprar') || t.includes('supermercado') || t.includes('tienda')) {
+            return ["Paso 1: Revisa qué falta y haz una lista escrita.", "Paso 2: Lleva fundas reutilizables y tu billetera.", "Paso 3: Cíñete a la lista para evitar gastos extra."];
+        }
+        // Desglose genérico si no reconoce la palabra
         return [
-            "Paso 1: Prepara tu espacio y materiales.",
-            `Paso 2: Dedica los primeros 5 minutos a iniciar "${text}".`,
-            "Paso 3: Revisa lo hecho y tacha la tarea principal."
+            `Paso 1: Identifica qué necesitas para empezar "${text}".`,
+            "Paso 2: Dedica solo 5 minutos a hacer la parte más fácil.",
+            "Paso 3: Toma un respiro y avanza un poco más."
         ];
     }
 
-    // --- 4. GESTIÓN DEL MICRÓFONO (SOLUCIÓN A BRAVE) ---
-    btnDictate.addEventListener('click', () => {
-        // Detectar navegador Brave que bloquea el micro
-        if (navigator.brave && navigator.brave.isBrave) {
-            window.showToast('Estás en Brave. Desactiva los escudos (icono del león) o usa Chrome para usar la voz.', 'bx-shield-x');
-            return;
-        }
-
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
-
-        const recognition = new SpeechRecognition();
-        recognition.lang = 'es-ES';
-        
-        recognition.onstart = () => {
-            btnDictate.classList.add('listening');
-            voiceIndicator.classList.remove('hidden');
-        };
-        
-        recognition.onresult = (e) => {
-            taskInput.value = e.results[0][0].transcript;
-            window.showToast('Voz procesada.', 'bx-microphone');
-        };
-        
-        recognition.onend = () => {
-            btnDictate.classList.remove('listening');
-            voiceIndicator.classList.add('hidden');
-        };
-
-        recognition.onerror = (e) => {
-            btnDictate.classList.remove('listening');
-            voiceIndicator.classList.add('hidden');
-            if(e.error === 'network') {
-                window.showToast('Error de red. Si usas Brave/Edge, cambia la config de privacidad.', 'bx-wifi-off');
-            } else {
-                window.showToast(`Error: ${e.error}`, 'bx-error');
-            }
-        };
-        recognition.start();
-    });
-
-    // --- 5. CATEGORIZADOR Y RENDERIZADO ---
+    // --- 5. CATEGORIZADOR Y RENDERIZADO (CLARIDAD APLICADA) ---
     function analyzeTaskCategory(text) {
         const lowerText = text.toLowerCase();
         if (lowerText.match(/(ejercicio|gym|gimnasio|correr|pesas)/)) return { cat: 'ejercicio', icon: 'bx-dumbbell', name: 'Ejercicio' };
-        if (lowerText.match(/(deberes|tarea|estudiar|leer)/)) return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
+        if (lowerText.match(/(deberes|tarea|estudiar|leer|matemáticas)/)) return { cat: 'estudio', icon: 'bx-book-open', name: 'Estudio' };
         if (lowerText.match(/(medicina|pastilla|doctor)/)) return { cat: 'salud', icon: 'bx-plus-medical', name: 'Salud' };
-        if (lowerText.match(/(limpiar|cocinar|barrer)/)) return { cat: 'hogar', icon: 'bx-home-heart', name: 'Hogar' };
-        if (lowerText.match(/(comprar|pagar|supermercado)/)) return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
+        if (lowerText.match(/(limpiar|cocinar|barrer|cuarto)/)) return { cat: 'hogar', icon: 'bx-home-heart', name: 'Hogar' };
+        if (lowerText.match(/(comprar|pagar|supermercado|pan)/)) return { cat: 'compras', icon: 'bx-cart', name: 'Compras' };
         return { cat: 'general', icon: 'bx-list-check', name: 'General' };
     }
 
@@ -221,9 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `task-item ${task.completada ? 'completed' : ''}`;
             
-            // Botón de Enfoque y Botón de Desglose
+            // EL BOTÓN AHORA ES CLARO Y CON TEXTO (Criterio de Claridad)
             div.innerHTML = `
-                <button class="icon-btn btn-check" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
+                <button class="icon-btn btn-check" aria-label="Completar" data-id="${task.id}" data-state="${task.completada}"><i class='bx ${task.completada ? 'bx-check-circle solid' : 'bx-circle'}'></i></button>
                 <div class="cat-icon cat-${cat.cat}"><i class='bx ${cat.icon}'></i></div>
                 <div class="task-content">
                     <span class="task-text">${task.texto}</span>
@@ -234,14 +209,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="subtasks-container hidden" id="subtasks-${task.id}"></div>
                 </div>
                 <div class="task-actions">
-                    ${!task.completada ? `<button class="icon-btn btn-focus" style="color: var(--primary);" title="Enfocar"><i class='bx bx-target-lock'></i></button>` : ''}
-                    <button class="icon-btn btn-listen" data-text="${task.texto}" title="Escuchar"><i class='bx bx-volume-full'></i></button>
+                    ${!task.completada ? `<button class="btn-focus-clear" title="Enfocar en esta tarea"><i class='bx bx-target-lock'></i> Enfocar</button>` : ''}
+                    <button class="icon-btn btn-listen" data-text="${task.texto}" title="Leer en voz alta"><i class='bx bx-volume-full'></i></button>
                     <button class="icon-btn btn-delete" style="color:var(--danger)" data-id="${task.id}" title="Eliminar"><i class='bx bx-trash'></i></button>
                 </div>
             `;
             
             // EVENTO 1: Iniciar Modo Enfoque desde la Tarea
-            const btnFocus = div.querySelector('.btn-focus');
+            const btnFocus = div.querySelector('.btn-focus-clear');
             if (btnFocus) {
                 btnFocus.addEventListener('click', () => {
                     currentFocusTask = task;
@@ -257,10 +232,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     dashboardView.classList.add('hidden');
                     focusView.classList.remove('hidden');
+                    
+                    // Inicia el ejercicio de respiración
+                    runBreathingCycle(); 
                 });
             }
 
-            // EVENTO 2: Desglose Mágico
+            // EVENTO 2: Desglose Mágico Inteligente
             const btnMagic = div.querySelector('.btn-magic');
             if (btnMagic) {
                 btnMagic.addEventListener('click', (e) => {
@@ -304,6 +282,46 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     taskInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') btnAdd.click(); });
+
+    // --- 6. MICRÓFONO (SOLUCIÓN A BRAVE) ---
+    btnDictate.addEventListener('click', () => {
+        if (navigator.brave && navigator.brave.isBrave) {
+            window.showToast('Estás en Brave. Desactiva los escudos (icono del león) o usa Chrome para usar la voz.', 'bx-shield-x');
+            return;
+        }
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return window.showToast('Navegador no compatible.', 'bx-error');
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-ES';
+        
+        recognition.onstart = () => {
+            btnDictate.classList.add('listening');
+            voiceIndicator.classList.remove('hidden');
+        };
+        
+        recognition.onresult = (e) => {
+            taskInput.value = e.results[0][0].transcript;
+            window.showToast('Voz procesada.', 'bx-microphone');
+        };
+        
+        recognition.onend = () => {
+            btnDictate.classList.remove('listening');
+            voiceIndicator.classList.add('hidden');
+        };
+
+        recognition.onerror = (e) => {
+            btnDictate.classList.remove('listening');
+            voiceIndicator.classList.add('hidden');
+            if(e.error === 'network') {
+                window.showToast('Error de red. Revisa los escudos de privacidad de tu navegador.', 'bx-wifi-off');
+            } else {
+                window.showToast(`Error: ${e.error}`, 'bx-error');
+            }
+        };
+        recognition.start();
+    });
 
     fetchTasks();
 });
